@@ -1,0 +1,38 @@
+name: taara
+description: "Taara — Light up your repairs. Anywhere. Offline."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Caméra (CORRIGÉ — intégration réelle)
+  camera: ^0.11.0+2
+  image_picker: ^1.1.2
+
+  # Animations
+  animations: ^2.0.11
+
+  # State management simple
+  provider: ^6.1.2
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # Utils
+  shimmer: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
