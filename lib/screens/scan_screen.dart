@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taara/theme/app_theme.dart';
 import 'package:taara/models/diagnostic_model.dart';
+import 'package:taara/services/gemma_service.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -18,6 +20,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   bool _isCameraReady = false;
   bool _isAnalyzing = false;
   bool _torchOn = false;
+  File? _capturedImage; // ← image capturée stockée
 
   late AnimationController _cornerController;
   late Animation<double> _cornerAnim;
@@ -40,7 +43,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   }
 
   void _initAnimations() {
-    // Animation coins du viewfinder
     _cornerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -49,12 +51,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       CurvedAnimation(parent: _cornerController, curve: Curves.easeInOut),
     );
 
-    // Ligne de scan
     _scanLineController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat();
-    _scanLine = Tween<double>(begin: 0.0, end: 1.0).animate(_scanLineController);
+    _scanLine =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_scanLineController);
   }
 
   Future<void> _initCamera() async {
@@ -75,11 +77,31 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
   }
 
+  // ── Capture depuis la caméra ──────────────────────────────────────────────
+  Future<void> _captureAndAnalyze() async {
+    if (_cameraController == null || !_isCameraReady) return;
+
+    try {
+      final xFile = await _cameraController!.takePicture();
+      _capturedImage = File(xFile.path);
+      await _runAnalysis(_capturedImage!);
+    } catch (e) {
+      debugPrint('Erreur capture: $e');
+      // Fallback sur mock si erreur caméra
+      await _runAnalysis(null);
+    }
+  }
+
+  // ── Sélection depuis la galerie ───────────────────────────────────────────
   Future<void> _pickFromGallery() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
     if (image != null && mounted) {
-      _runAnalysis();
+      _capturedImage = File(image.path);
+      await _runAnalysis(_capturedImage!);
     }
   }
 
@@ -91,7 +113,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _runAnalysis() async {
+  // ── Analyse principale — appelle Gemma 4 ─────────────────────────────────
+  Future<void> _runAnalysis(File? imageFile) async {
     setState(() {
       _isAnalyzing = true;
       for (int i = 0; i < _thinkingVisible.length; i++) {
@@ -99,23 +122,32 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       }
     });
 
-    // Affichage progressif des lignes de thinking
-    for (int i = 0; i < _thinkingLines.length; i++) {
+    // Affichage progressif du thinking pendant que Gemma travaille
+    for (int i = 0; i < _thinkingLines.length - 1; i++) {
       await Future.delayed(Duration(milliseconds: 700 * (i + 1)));
       if (mounted) setState(() => _thinkingVisible[i] = true);
     }
 
-    // TODO: LiteRT — Remplacer ce délai par l'inférence Gemma 4
-    // final result = await GemmaInference.analyze(imagePath);
-    await Future.delayed(const Duration(milliseconds: 800));
+    // ── Appel réel à Gemma 4 ──────────────────────────────────────────────
+    DiagnosticModel result;
+    if (imageFile != null) {
+      result = await GemmaService.analyzeImage(imageFile);
+    } else {
+      // Fallback mock si pas d'image
+      result = DiagnosticModel.mock();
+    }
+
+    // Affiche la dernière ligne de thinking
+    if (mounted) setState(() => _thinkingVisible[3] = true);
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (mounted) {
+      setState(() => _isAnalyzing = false);
       Navigator.pushNamed(
         context,
         '/result',
-        arguments: DiagnosticModel.mock(),
+        arguments: result, // ← résultat RÉEL de Gemma 4
       );
-      setState(() => _isAnalyzing = false);
     }
   }
 
@@ -134,12 +166,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Caméra ou fallback ──────────────────────────────────────────
+          // ── Caméra ou fallback ────────────────────────────────────────
           _isCameraReady && _cameraController != null
               ? CameraPreview(_cameraController!)
               : _buildCameraFallback(),
 
-          // ── Overlay sombre haut ─────────────────────────────────────────
+          // ── Overlay sombre haut ───────────────────────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -156,7 +188,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Texte d'instruction ─────────────────────────────────────────
+          // ── Texte d'instruction ───────────────────────────────────────
           Positioned(
             top: 60,
             left: 0,
@@ -173,13 +205,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Viewfinder animé ────────────────────────────────────────────
+          // ── Viewfinder animé ──────────────────────────────────────────
           Center(child: _buildViewfinder()),
 
-          // ── Overlay analyse ─────────────────────────────────────────────
+          // ── Overlay analyse ───────────────────────────────────────────
           if (_isAnalyzing) _buildAnalysisOverlay(),
 
-          // ── Overlay sombre bas ──────────────────────────────────────────
+          // ── Overlay sombre bas ────────────────────────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -196,7 +228,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Contrôles caméra ────────────────────────────────────────────
+          // ── Contrôles caméra ──────────────────────────────────────────
           if (!_isAnalyzing) _buildControls(),
         ],
       ),
@@ -269,7 +301,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCorner({double? top, double? left, double? right, double? bottom}) {
+  Widget _buildCorner(
+      {double? top, double? left, double? right, double? bottom}) {
     return Positioned(
       top: top,
       left: left,
@@ -319,7 +352,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Logo pulsant
             Container(
               width: 70,
               height: 70,
@@ -348,8 +380,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Lignes de thinking progressives
             for (int i = 0; i < _thinkingLines.length; i++)
               AnimatedOpacity(
                 opacity: _thinkingVisible[i] ? 1.0 : 0.0,
@@ -385,9 +415,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             onTap: _pickFromGallery,
           ),
 
-          // Bouton capture principal
+          // Bouton capture principal → appelle _captureAndAnalyze
           GestureDetector(
-            onTap: _runAnalysis,
+            onTap: _captureAndAnalyze,
             child: Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(

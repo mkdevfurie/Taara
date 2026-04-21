@@ -17,7 +17,20 @@ class DiagnosticModel {
     required this.parts,
   });
 
-  // Mock data pour la démo hackathon
+  // ── fromJson — pour les réponses réelles de Gemma 4 ──────────────────────
+  factory DiagnosticModel.fromJson(Map<String, dynamic> json) {
+    return DiagnosticModel(
+      objectName: json['objectName'] ?? 'Objet inconnu',
+      confidence: (json['confidence'] ?? 0.85).toDouble(),
+      status: json['status'] ?? 'ATTENTION',
+      problem: json['problem'] ?? 'Analyse en cours...',
+      thinking: List<String>.from(json['thinking'] ?? []),
+      steps: List<String>.from(json['steps'] ?? []),
+      parts: List<String>.from(json['parts'] ?? []),
+    );
+  }
+
+  // ── Mock alternateur — démo hackathon ────────────────────────────────────
   factory DiagnosticModel.mock() {
     return DiagnosticModel(
       objectName: 'Alternateur Bosch AL65J',
@@ -49,7 +62,7 @@ class DiagnosticModel {
     );
   }
 
-  // Mock pour pompe hydraulique
+  // ── Mock pompe hydraulique ────────────────────────────────────────────────
   factory DiagnosticModel.mockPump() {
     return DiagnosticModel(
       objectName: 'Pompe Hydraulique X-200',
