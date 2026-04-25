@@ -1,0 +1,33 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="230" fill="#080C18"/>
+  <circle cx="512" cy="460" r="252" fill="#F5A623"/>
+  <g transform="translate(512,460)">
+    <g transform="rotate(0)">  <rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(22.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(45)"> <rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(67.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(90)"> <rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(112.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(135)"><rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(157.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(180)"><rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(202.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(225)"><rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(247.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(270)"><rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(292.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+    <g transform="rotate(315)"><rect fill="#080C18" x="-16" y="-272" width="32" height="38" rx="8"/></g>
+    <g transform="rotate(337.5)"><rect fill="#080C18" x="-11" y="-272" width="22" height="30" rx="6"/></g>
+  </g>
+  <circle cx="512" cy="460" r="144" fill="#080C18"/>
+  <circle cx="512" cy="460" r="144" fill="none" stroke="#F5A623" stroke-width="4" opacity="0.5"/>
+  <path d="M528 362 L484 454 L516 454 L492 568 L544 462 L510 462 Z" fill="#FFD580"/>
+  <rect x="0" y="760" width="1024" height="180" fill="#080C18" opacity="0.7"/>
+  <text x="512" y="880"
+        font-family="Arial Black, sans-serif"
+        font-weight="900"
+        font-size="108"
+        fill="#F5A623"
+        text-anchor="middle"
+        letter-spacing="14">TAARA</text>
+</svg>

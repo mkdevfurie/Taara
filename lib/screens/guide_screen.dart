@@ -64,14 +64,16 @@ class _GuideScreenState extends State<GuideScreen>
             const SizedBox(height: 8),
             const Text(
               'Voici quelques suggestions pour débloquer cette étape.',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+              style:
+                  TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 20),
             _buildSOSTip(
                 Icons.video_library_outlined, 'Voir un tutoriel vidéo'),
-            _buildSOSTip(Icons.forum_outlined, 'Consulter la communauté'),
             _buildSOSTip(
-                Icons.contact_support_outlined, 'Contacter un technicien'),
+                Icons.forum_outlined, 'Consulter la communauté'),
+            _buildSOSTip(Icons.contact_support_outlined,
+                'Contacter un technicien'),
             const SizedBox(height: 16),
           ],
         ),
@@ -83,7 +85,8 @@ class _GuideScreenState extends State<GuideScreen>
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TaaraCard(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Icon(icon, color: AppTheme.primary, size: 20),
@@ -100,11 +103,84 @@ class _GuideScreenState extends State<GuideScreen>
     );
   }
 
+  // ✅ Outils détectés dynamiquement depuis le texte de l'étape réelle
+  List<Widget> _getToolsForStep(String stepText) {
+    final text = stepText.toLowerCase();
+    final List<String> tools = [];
+
+    if (text.contains('tournevis') || text.contains('vis') ||
+        text.contains('dévisser')) tools.add('TOURNEVIS');
+    if (text.contains('souder') || text.contains('soudure') ||
+        text.contains('fer')) tools.add('FER À SOUDER');
+    if (text.contains('multimètre') || text.contains('tester') ||
+        text.contains('mesure')) tools.add('MULTIMÈTRE');
+    if (text.contains('pince')) tools.add('PINCE');
+    if (text.contains('gant') || text.contains('protection') ||
+        text.contains('sécurité')) tools.add('GANTS');
+    if (text.contains('batterie') || text.contains('alimentation') ||
+        text.contains('débranch')) tools.add('SÉCURITÉ');
+    if (text.contains('clé') || text.contains('écrou')) tools.add('CLÉ');
+    if (text.contains('chiffon') || text.contains('nettoy')) tools.add('CHIFFON');
+    if (text.contains('lampe') || text.contains('lumière')) tools.add('LAMPE');
+
+    if (tools.isEmpty) tools.add('OUTILS');
+
+    return tools
+        .map((t) => ToolChip(label: t, icon: Icons.build_outlined))
+        .toList();
+  }
+
+  // ✅ Conseil générique basé sur position de l'étape
+  String _getTipForStep(int step, int total) {
+    if (step == 0) {
+      return "Avant de commencer, assurez-vous d'avoir tous les outils nécessaires et de travailler dans un espace bien éclairé.";
+    }
+    if (step == total - 1) {
+      return "Dernière étape ! Vérifiez soigneusement chaque connexion avant de remettre sous tension.";
+    }
+    if (step == 1) {
+      return "Prenez des photos de chaque étape de démontage pour faciliter le remontage.";
+    }
+    return "Prenez votre temps et vérifiez chaque connexion avant de passer à l'étape suivante.";
+  }
+
+  // ✅ Icône basée sur le texte de l'étape
+  IconData _getIconForStep(String stepText) {
+    final text = stepText.toLowerCase();
+    if (text.contains('couper') || text.contains('débranch') ||
+        text.contains('alimentation')) return Icons.power_off_rounded;
+    if (text.contains('démonter') || text.contains('dévisser') ||
+        text.contains('ouvrir')) return Icons.home_repair_service_rounded;
+    if (text.contains('inspecter') || text.contains('vérifier') ||
+        text.contains('observer')) return Icons.search_rounded;
+    if (text.contains('souder') || text.contains('chaleur') ||
+        text.contains('fer')) return Icons.whatshot_rounded;
+    if (text.contains('remplacer') || text.contains('installer') ||
+        text.contains('nouveau')) return Icons.swap_horiz_rounded;
+    if (text.contains('tester') || text.contains('vérif') ||
+        text.contains('mesure')) return Icons.check_rounded;
+    if (text.contains('nettoyer') || text.contains('nettoy')) return Icons.cleaning_services;
+    if (text.contains('brancher') || text.contains('connecter') ||
+        text.contains('rebranch')) return Icons.battery_charging_full_rounded;
+    return Icons.build_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final diagnostic = (ModalRoute.of(context)?.settings.arguments
-            as DiagnosticModel?) ??
-        DiagnosticModel.mock();
+    // ✅ Utilise le diagnostic réel de Gemma 4
+    final diagnostic =
+        ModalRoute.of(context)?.settings.arguments as DiagnosticModel?;
+
+    if (diagnostic == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(title: const Text('Guide')),
+        body: const Center(
+          child: Text('Aucun guide disponible.',
+              style: TextStyle(color: Colors.white54)),
+        ),
+      );
+    }
 
     final steps = diagnostic.steps;
     final totalSteps = steps.length;
@@ -128,9 +204,10 @@ class _GuideScreenState extends State<GuideScreen>
       ),
       body: Column(
         children: [
-          // ── Progress header ──────────────────────────────────────────────
+          // ── Progress ─────────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -166,18 +243,19 @@ class _GuideScreenState extends State<GuideScreen>
             ),
           ),
 
-          // ── Contenu étape ────────────────────────────────────────────────
+          // ── Contenu ───────────────────────────────────────────────────────
           Expanded(
             child: FadeTransition(
               opacity: _stepFade,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
 
-                    // Numéro étape géant
+                    // Numéro géant décoratif
                     Text(
                       '${_currentStep + 1}',
                       style: TextStyle(
@@ -188,13 +266,13 @@ class _GuideScreenState extends State<GuideScreen>
                       ),
                     ),
 
-                    // Titre de l'étape
+                    // ✅ Texte réel de l'étape Gemma 4
                     Transform.translate(
                       offset: const Offset(0, -50),
                       child: Text(
                         steps[_currentStep],
                         style: GoogleFonts.poppins(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           height: 1.3,
@@ -202,39 +280,40 @@ class _GuideScreenState extends State<GuideScreen>
                       ),
                     ),
 
-                    // Outils nécessaires
+                    // ✅ Outils détectés dynamiquement
                     Transform.translate(
                       offset: const Offset(0, -30),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _getToolsForStep(_currentStep),
+                        children: _getToolsForStep(steps[_currentStep]),
                       ),
                     ),
 
                     const SizedBox(height: 8),
 
-                    // Image placeholder (CORRIGÉ — plus de NetworkImage cassé)
+                    // Illustration avec icône dynamique
                     Container(
-                      height: 180,
+                      height: 160,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceLow,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: AppTheme.primary.withOpacity(0.1)),
+                            color:
+                                AppTheme.primary.withOpacity(0.1)),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            _getIconForStep(_currentStep),
+                            _getIconForStep(steps[_currentStep]),
                             color: AppTheme.primary.withOpacity(0.4),
                             size: 48,
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Illustration étape ${_currentStep + 1}',
+                            'Étape ${_currentStep + 1} sur $totalSteps',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.2),
                               fontSize: 12,
@@ -246,17 +325,42 @@ class _GuideScreenState extends State<GuideScreen>
 
                     const SizedBox(height: 20),
 
-                    // Conseil expert
-                    _buildExpertTip(_currentStep),
+                    // ✅ Conseil contextuel
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: AppTheme.primary.withOpacity(0.15)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.lightbulb_outline_rounded,
+                              color: AppTheme.primary, size: 18),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _getTipForStep(_currentStep, totalSteps),
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                  height: 1.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                    const SizedBox(height: 100), // Espace pour les boutons
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
           ),
 
-          // ── Navigation bas ───────────────────────────────────────────────
+          // ── Navigation ────────────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             decoration: BoxDecoration(
@@ -271,28 +375,26 @@ class _GuideScreenState extends State<GuideScreen>
             ),
             child: Row(
               children: [
-                // Bouton précédent
                 if (_currentStep > 0)
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _goToStep(_currentStep - 1, totalSteps),
+                      onPressed: () =>
+                          _goToStep(_currentStep - 1, totalSteps),
                       child: const Text('Précédent'),
                     ),
                   ),
-
                 if (_currentStep > 0) const SizedBox(width: 16),
-
-                // Bouton suivant / terminer
                 Expanded(
                   flex: 2,
                   child: GoldButton(
                     label: isLastStep ? 'TERMINER ✓' : 'SUIVANT',
-                    icon: isLastStep ? null : Icons.arrow_forward_rounded,
+                    icon: isLastStep
+                        ? null
+                        : Icons.arrow_forward_rounded,
                     onTap: () {
                       if (isLastStep) {
-                        Navigator.popUntil(context, NamedRouteHelper.isHome);
-                        showTaaraSnackbar(
-                            context, '✅ Réparation terminée avec succès !');
+                        // Retour propre vers l'accueil en vidant la stack
+                        Navigator.of(context).popUntil((route) => route.settings.name == '/home');
                       } else {
                         _goToStep(_currentStep + 1, totalSteps);
                       }
@@ -306,75 +408,9 @@ class _GuideScreenState extends State<GuideScreen>
       ),
     );
   }
-
-  List<Widget> _getToolsForStep(int step) {
-    const toolsByStep = [
-      ['SÉCURITÉ', 'GANTS'],
-      ['TOURNEVIS', 'RÉCIPIENT'],
-      ['LAMPE', 'LOUPE'],
-      ['FER À SOUDER', 'ÉTAIN'],
-      ['CONDENSATEUR', 'PINCE'],
-      ['FER À SOUDER', 'TEST'],
-      ['MULTIMÈTRE', 'BATTERIE'],
-    ];
-    final tools = step < toolsByStep.length ? toolsByStep[step] : ['OUTILS'];
-    return tools
-        .map((t) => ToolChip(label: t, icon: Icons.build_outlined))
-        .toList();
-  }
-
-  IconData _getIconForStep(int step) {
-    const icons = [
-      Icons.power_off_rounded,
-      Icons.home_repair_service_rounded,
-      Icons.search_rounded,
-      Icons.whatshot_rounded,
-      Icons.swap_horiz_rounded,
-      Icons.check_rounded,
-      Icons.battery_charging_full_rounded,
-    ];
-    return step < icons.length ? icons[step] : Icons.build_rounded;
-  }
-
-  Widget _buildExpertTip(int step) {
-    const tips = [
-      'Débranchez toujours la batterie en commençant par la borne négative (–) pour éviter tout court-circuit.',
-      'Utilisez un récipient magnétique pour ne pas perdre les petites vis pendant le démontage.',
-      'Le condensateur gonflé est souvent visible à l\'œil nu — cherchez une déformation du capot supérieur.',
-      'Ne dépassez pas 350°C avec le fer à souder pour éviter d\'endommager les pistes du circuit.',
-      'Vérifiez la polarité (+/–) avant d\'installer le nouveau condensateur. Une erreur peut l\'endommager.',
-      'Attendez que les soudures refroidissent 30 secondes avant de manipuler la carte.',
-      'Testez sous charge progressivement — démarrez d\'abord sans connecter les gros consommateurs.',
-    ];
-    final tip = step < tips.length ? tips[step] : 'Prenez votre temps et vérifiez chaque connexion.';
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.15)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.lightbulb_outline_rounded,
-              color: AppTheme.primary, size: 18),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              tip,
-              style: const TextStyle(
-                  fontSize: 12, color: Colors.white70, height: 1.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-// Helper pour la navigation
 class NamedRouteHelper {
-  static bool isHome(Route<dynamic> route) => route.settings.name == '/home';
+  static bool isHome(Route<dynamic> route) =>
+      route.settings.name == '/home';
 }

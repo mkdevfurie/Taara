@@ -5,6 +5,7 @@ import 'package:taara/screens/home_screen.dart';
 import 'package:taara/screens/scan_screen.dart';
 import 'package:taara/screens/result_screen.dart';
 import 'package:taara/screens/guide_screen.dart';
+import 'package:taara/screens/voice_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ class TaaraApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/home': (context) => const HomeScreen(),
         '/scan': (context) => const ScanScreen(),
+        '/voice': (context) => const VoiceScreen(),
         '/result': (context) => const ResultScreen(),
         '/guide': (context) => const GuideScreen(),
       },

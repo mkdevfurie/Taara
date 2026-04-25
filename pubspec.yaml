@@ -15,14 +15,14 @@ dependencies:
   # Fonts
   google_fonts: ^6.2.1
 
-  # Caméra (CORRIGÉ — intégration réelle)
+  # Caméra
   camera: ^0.11.0+2
   image_picker: ^1.1.2
 
   # Animations
   animations: ^2.0.11
 
-  # State management simple
+  # State management
   provider: ^6.1.2
 
   # Navigation
@@ -31,10 +31,27 @@ dependencies:
   # Utils
   shimmer: ^3.0.0
 
+  # Persistance locale
+  shared_preferences: ^2.3.0
+
+  # Reconnaissance vocale native Android
+  speech_to_text: ^7.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/taara_icon.png
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/taara_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#080C18"
+  adaptive_icon_foreground: "assets/icon/taara_icon.png"

@@ -24,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Logo animation
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -36,7 +35,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
 
-    // Text animation (délai 600ms)
     _textController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -45,24 +43,19 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _textController, curve: Curves.easeOut),
     );
 
-    // Glow pulse continu
     _glowController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     _glow = Tween<double>(begin: 20.0, end: 45.0).animate(_glowController);
 
-    // Séquence d'animations
     _logoController.forward();
     Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) _textController.forward();
     });
 
-    // Navigation vers Home après 3.2 secondes
     Future.delayed(const Duration(milliseconds: 3200), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
     });
   }
 
@@ -80,15 +73,12 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: AppTheme.background,
       body: Stack(
         children: [
-          // Fond avec pattern subtil
           _buildBackground(),
-
-          // Contenu centré
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo animé
+                // ── Logo animé ─────────────────────────────────────────────
                 FadeTransition(
                   opacity: _logoFade,
                   child: ScaleTransition(
@@ -97,8 +87,8 @@ class _SplashScreenState extends State<SplashScreen>
                       animation: _glow,
                       builder: (context, child) {
                         return Container(
-                          width: 110,
-                          height: 110,
+                          width: 120,
+                          height: 120,
                           decoration: BoxDecoration(
                             gradient: AppTheme.goldGradient,
                             shape: BoxShape.circle,
@@ -110,10 +100,17 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.wb_sunny_rounded,
-                            size: 55,
-                            color: AppTheme.background,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Engrenage stylisé
+                              Icon(Icons.settings,
+                                  color: AppTheme.background.withOpacity(0.2),
+                                  size: 100),
+                              // Éclair central
+                              const Icon(Icons.wb_sunny_rounded,
+                                  color: AppTheme.background, size: 55),
+                            ],
                           ),
                         );
                       },
@@ -123,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                 const SizedBox(height: 28),
 
-                // Titre TAARA
+                // ── Texte ──────────────────────────────────────────────────
                 FadeTransition(
                   opacity: _textFade,
                   child: Column(
@@ -163,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // Barre de progression + badge en bas
+          // ── Badge + progress en bas ────────────────────────────────────
           Positioned(
             bottom: 60,
             left: 40,
@@ -172,7 +169,6 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _textFade,
               child: Column(
                 children: [
-                  // Progress bar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: const LinearProgressIndicator(
@@ -182,8 +178,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Badge offline
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
@@ -200,9 +194,8 @@ class _SplashScreenState extends State<SplashScreen>
                           width: 7,
                           height: 7,
                           decoration: const BoxDecoration(
-                            color: Colors.greenAccent,
-                            shape: BoxShape.circle,
-                          ),
+                              color: Colors.greenAccent,
+                              shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -229,7 +222,6 @@ class _SplashScreenState extends State<SplashScreen>
   Widget _buildBackground() {
     return Stack(
       children: [
-        // Halo doré en haut à gauche
         Positioned(
           top: -80,
           left: -80,
@@ -247,7 +239,6 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
         ),
-        // Halo bleu en bas à droite
         Positioned(
           bottom: -60,
           right: -60,

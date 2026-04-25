@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:taara/theme/app_theme.dart';
 import 'package:taara/models/diagnostic_model.dart';
 import 'package:taara/services/gemma_service.dart';
+import 'package:taara/services/history_service.dart';
+import 'package:taara/screens/voice_screen.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -20,7 +22,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   bool _isCameraReady = false;
   bool _isAnalyzing = false;
   bool _torchOn = false;
-  File? _capturedImage; // ← image capturée stockée
 
   late AnimationController _cornerController;
   late Animation<double> _cornerAnim;
@@ -28,9 +29,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   late Animation<double> _scanLine;
 
   final List<String> _thinkingLines = [
-    "🔍 J'observe les composants...",
+    "🔍 Observation des composants...",
     "⚡ Détection d'anomalie en cours...",
-    "🧠 Analyse thermique...",
+    "🧠 Analyse avec Gemma 4...",
     "✅ Diagnostic prêt !",
   ];
   final List<bool> _thinkingVisible = [false, false, false, false];
@@ -50,7 +51,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     _cornerAnim = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _cornerController, curve: Curves.easeInOut),
     );
-
     _scanLineController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -63,13 +63,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     try {
       _cameras = await availableCameras();
       if (_cameras.isEmpty) return;
-
       _cameraController = CameraController(
         _cameras[0],
         ResolutionPreset.high,
         enableAudio: false,
       );
-
       await _cameraController!.initialize();
       if (mounted) setState(() => _isCameraReady = true);
     } catch (e) {
@@ -77,31 +75,29 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ── Capture depuis la caméra ──────────────────────────────────────────────
   Future<void> _captureAndAnalyze() async {
-    if (_cameraController == null || !_isCameraReady) return;
-
+    if (_cameraController == null || !_isCameraReady || _isAnalyzing) return;
     try {
       final xFile = await _cameraController!.takePicture();
-      _capturedImage = File(xFile.path);
-      await _runAnalysis(_capturedImage!);
+      await _runAnalysis(File(xFile.path));
     } catch (e) {
       debugPrint('Erreur capture: $e');
-      // Fallback sur mock si erreur caméra
-      await _runAnalysis(null);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur lors de la capture')));
+      }
     }
   }
 
-  // ── Sélection depuis la galerie ───────────────────────────────────────────
   Future<void> _pickFromGallery() async {
+    if (_isAnalyzing) return;
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 85,
     );
     if (image != null && mounted) {
-      _capturedImage = File(image.path);
-      await _runAnalysis(_capturedImage!);
+      await _runAnalysis(File(image.path));
     }
   }
 
@@ -113,8 +109,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ── Analyse principale — appelle Gemma 4 ─────────────────────────────────
-  Future<void> _runAnalysis(File? imageFile) async {
+  Future<void> _runAnalysis(File imageFile) async {
     setState(() {
       _isAnalyzing = true;
       for (int i = 0; i < _thinkingVisible.length; i++) {
@@ -122,32 +117,29 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       }
     });
 
-    // Affichage progressif du thinking pendant que Gemma travaille
+    // Afficher les étapes de raisonnement progressivement
     for (int i = 0; i < _thinkingLines.length - 1; i++) {
-      await Future.delayed(Duration(milliseconds: 700 * (i + 1)));
+      await Future.delayed(Duration(milliseconds: 800 * (i + 1)));
       if (mounted) setState(() => _thinkingVisible[i] = true);
     }
 
-    // ── Appel réel à Gemma 4 ──────────────────────────────────────────────
-    DiagnosticModel result;
-    if (imageFile != null) {
-      result = await GemmaService.analyzeImage(imageFile);
-    } else {
-      // Fallback mock si pas d'image
-      result = DiagnosticModel.mock();
-    }
+    // Appel réel à Gemma 4
+    final result = await GemmaService.analyzeImage(imageFile);
 
-    // Affiche la dernière ligne de thinking
     if (mounted) setState(() => _thinkingVisible[3] = true);
     await Future.delayed(const Duration(milliseconds: 500));
 
     if (mounted) {
       setState(() => _isAnalyzing = false);
-      Navigator.pushNamed(
-        context,
-        '/result',
-        arguments: result, // ← résultat RÉEL de Gemma 4
-      );
+
+      // Sauvegarder dans l'historique
+      await HistoryService.add(result);
+
+      // Naviguer vers le résultat
+      await Navigator.pushNamed(context, '/result', arguments: result);
+
+      // Retourner le résultat au HomeScreen
+      if (mounted) Navigator.pop(context, result);
     }
   }
 
@@ -166,17 +158,14 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Caméra ou fallback ────────────────────────────────────────
+          // Fond caméra
           _isCameraReady && _cameraController != null
               ? CameraPreview(_cameraController!)
               : _buildCameraFallback(),
 
-          // ── Overlay sombre haut ───────────────────────────────────────
+          // Gradient haut
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 120,
+            top: 0, left: 0, right: 0, height: 120,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -188,35 +177,72 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Texte d'instruction ───────────────────────────────────────
+          // Bouton retour + titre + bouton vocal
           Positioned(
-            top: 60,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(
-                "Pointez vers l'objet à réparer",
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+            top: 48, left: 0, right: 0,
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white),
                 ),
-              ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      "Pointez vers l'objet à réparer",
+                      style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ),
+                // Bouton vocal — accès rapide depuis le scan
+                GestureDetector(
+                  onTap: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const VoiceScreen()),
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.mic_rounded,
+                            color: Colors.white, size: 16),
+                        SizedBox(width: 5),
+                        Text('VOCAL',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // ── Viewfinder animé ──────────────────────────────────────────
+          // Viseur
           Center(child: _buildViewfinder()),
 
-          // ── Overlay analyse ───────────────────────────────────────────
+          // Overlay d'analyse
           if (_isAnalyzing) _buildAnalysisOverlay(),
 
-          // ── Overlay sombre bas ────────────────────────────────────────
+          // Gradient bas
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 160,
+            bottom: 0, left: 0, right: 0, height: 160,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -228,7 +254,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Contrôles caméra ──────────────────────────────────────────
+          // Contrôles
           if (!_isAnalyzing) _buildControls(),
         ],
       ),
@@ -245,9 +271,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             Icon(Icons.camera_alt_outlined,
                 color: AppTheme.primary.withOpacity(0.3), size: 64),
             const SizedBox(height: 16),
-            Text(
-              'Caméra non disponible',
-              style: TextStyle(color: Colors.white.withOpacity(0.3)),
+            Text('Caméra non disponible',
+                style: TextStyle(color: Colors.white.withOpacity(0.3))),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: _pickFromGallery,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('Choisir depuis la galerie'),
             ),
           ],
         ),
@@ -260,19 +290,15 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       animation: _cornerAnim,
       builder: (context, child) {
         return SizedBox(
-          width: 260,
-          height: 260,
+          width: 260, height: 260,
           child: Stack(
             children: [
-              // Ligne de scan animée
               if (!_isAnalyzing)
                 AnimatedBuilder(
                   animation: _scanLine,
                   builder: (context, child) {
                     return Positioned(
-                      top: _scanLine.value * 250,
-                      left: 10,
-                      right: 10,
+                      top: _scanLine.value * 250, left: 10, right: 10,
                       child: Container(
                         height: 2,
                         decoration: BoxDecoration(
@@ -288,8 +314,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                     );
                   },
                 ),
-
-              // Coins dorés
               _buildCorner(top: 0, left: 0),
               _buildCorner(top: 0, right: 0),
               _buildCorner(bottom: 0, left: 0),
@@ -304,13 +328,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   Widget _buildCorner(
       {double? top, double? left, double? right, double? bottom}) {
     return Positioned(
-      top: top,
-      left: left,
-      right: right,
-      bottom: bottom,
+      top: top, left: left, right: right, bottom: bottom,
       child: Container(
-        width: 32,
-        height: 32,
+        width: 32, height: 32,
         decoration: BoxDecoration(
           border: Border(
             top: top != null
@@ -353,8 +373,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 70,
-              height: 70,
+              width: 70, height: 70,
               decoration: BoxDecoration(
                 gradient: AppTheme.goldGradient,
                 shape: BoxShape.circle,
@@ -363,7 +382,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                     color: AppTheme.primary.withOpacity(0.4),
                     blurRadius: 30,
                     spreadRadius: 5,
-                  ),
+                  )
                 ],
               ),
               child: const Icon(Icons.wb_sunny_rounded,
@@ -386,13 +405,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 duration: const Duration(milliseconds: 400),
                 child: Padding(
                   padding: const EdgeInsets.only(top: 10),
-                  child: Text(
-                    _thinkingLines[i],
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
-                  ),
+                  child: Text(_thinkingLines[i],
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 13)),
                 ),
               ),
           ],
@@ -403,19 +418,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Widget _buildControls() {
     return Positioned(
-      bottom: 40,
-      left: 20,
-      right: 20,
+      bottom: 40, left: 20, right: 20,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // Galerie
           _buildControlButton(
-            icon: Icons.photo_library_outlined,
-            onTap: _pickFromGallery,
-          ),
-
-          // Bouton capture principal → appelle _captureAndAnalyze
+              icon: Icons.photo_library_outlined, onTap: _pickFromGallery),
           GestureDetector(
             onTap: _captureAndAnalyze,
             child: Container(
@@ -425,12 +433,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 border: Border.all(color: Colors.white, width: 3),
               ),
               child: Container(
-                width: 68,
-                height: 68,
+                width: 68, height: 68,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppTheme.primary, AppTheme.primaryDark],
-                  ),
+                      colors: [AppTheme.primary, AppTheme.primaryDark]),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.camera_alt_rounded,
@@ -438,10 +444,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-
-          // Torche
           _buildControlButton(
-            icon: _torchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+            icon: _torchOn
+                ? Icons.flash_on_rounded
+                : Icons.flash_off_rounded,
             onTap: _toggleTorch,
             active: _torchOn,
           ),
@@ -450,30 +456,24 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool active = false,
-  }) {
+  Widget _buildControlButton(
+      {required IconData icon,
+      required VoidCallback onTap,
+      bool active = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 52,
-        height: 52,
+        width: 52, height: 52,
         decoration: BoxDecoration(
           color: active
               ? AppTheme.primary.withOpacity(0.2)
               : Colors.white.withOpacity(0.1),
           shape: BoxShape.circle,
-          border: Border.all(
-            color: active ? AppTheme.primary : Colors.white24,
-          ),
+          border:
+              Border.all(color: active ? AppTheme.primary : Colors.white24),
         ),
-        child: Icon(
-          icon,
-          color: active ? AppTheme.primary : Colors.white,
-          size: 24,
-        ),
+        child: Icon(icon,
+            color: active ? AppTheme.primary : Colors.white, size: 24),
       ),
     );
   }

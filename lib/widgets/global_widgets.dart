@@ -118,14 +118,14 @@ class _OfflineBadgeState extends State<OfflineBadge>
 // Bouton gradient doré avec glow effect
 class GoldButton extends StatefulWidget {
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final IconData? icon;
   final double height;
 
   const GoldButton({
     super.key,
     required this.label,
-    required this.onTap,
+    this.onTap,
     this.icon,
     this.height = 56,
   });
@@ -159,11 +159,13 @@ class _GoldButtonState extends State<GoldButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _scale.reverse(),
-      onTapUp: (_) {
-        _scale.forward();
-        widget.onTap();
-      },
+      onTapDown: widget.onTap != null ? (_) => _scale.reverse() : null,
+      onTapUp: widget.onTap != null
+          ? (_) {
+              _scale.forward();
+              widget.onTap?.call();
+            }
+          : null,
       onTapCancel: () => _scale.forward(),
       child: ScaleTransition(
         scale: _scale,
