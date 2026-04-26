@@ -1,0 +1,505 @@
+[
+  {
+    "id": "mot_001",
+    "objectName": "Moteur électrique",
+    "keywords": ["moteur", "motor", "électrique", "electric", "tourne", "démarre", "rotation", "vibration", "grille", "chauffe", "bruit"],
+    "status": "CRITIQUE",
+    "confidence": 0.78,
+    "problem": "Le moteur électrique présente des signes de surchauffe ou de défaillance mécanique. Une surchauffe prolongée peut endommager les bobinages et rendre le moteur irrécupérable.",
+    "thinking": [
+      "Un moteur qui chauffe anormalement indique généralement un problème de ventilation, une surcharge ou un bobinage défectueux",
+      "Les bruits métalliques suggèrent une usure des roulements ou un déséquilibre du rotor",
+      "La perte de puissance progressive est souvent liée à une dégradation de l'isolation des bobines"
+    ],
+    "steps": [
+      "Couper immédiatement l'alimentation électrique avant toute intervention",
+      "Laisser refroidir le moteur pendant au moins 30 minutes",
+      "Vérifier et nettoyer les grilles de ventilation obstruées par la poussière",
+      "Contrôler les roulements : les faire tourner à la main, ils doivent être fluides sans résistance",
+      "Mesurer la résistance des bobinages au multimètre — une valeur nulle ou infinie indique un bobinage grillé",
+      "Vérifier que la charge mécanique n'est pas bloquée ou trop lourde"
+    ],
+    "parts": ["Roulements à billes (référence selon diamètre arbre)", "Condensateur de démarrage", "Bobinage de remplacement", "Graisse pour roulements"],
+    "searchTerms": ["roulement moteur électrique", "condensateur démarrage moteur", "bobinage moteur réparation"],
+    "category": "moteur"
+  },
+  {
+    "id": "mot_002",
+    "objectName": "Moteur thermique essence",
+    "keywords": ["moteur", "thermique", "essence", "petrol", "carburateur", "cylindre", "piston", "fumée", "huile", "démarrage", "cale"],
+    "status": "ATTENTION",
+    "confidence": 0.75,
+    "problem": "Le moteur thermique présente des difficultés de démarrage ou une perte de puissance, souvent liées au système d'alimentation en carburant ou à l'allumage.",
+    "thinking": [
+      "Les difficultés de démarrage indiquent un problème d'allumage, de carburant ou de compression",
+      "La fumée noire signale un mélange trop riche, la fumée bleue indique une combustion d'huile",
+      "Un claquement métallique peut signaler un jeu excessif dans les pistons ou les soupapes"
+    ],
+    "steps": [
+      "Vérifier le niveau et la qualité du carburant",
+      "Contrôler la bougie d'allumage : nettoyer ou remplacer si électrode usée ou encrassée",
+      "Nettoyer le filtre à air obstrué",
+      "Nettoyer le carburateur : déboucher le gicleur principal au carburant",
+      "Contrôler le niveau d'huile moteur",
+      "Tester la compression avec un manomètre (valeur normale : 8 à 12 bars)"
+    ],
+    "parts": ["Bougie d'allumage", "Filtre à air", "Kit joints carburateur", "Filtre à carburant"],
+    "searchTerms": ["bougie allumage moteur thermique", "kit réparation carburateur", "filtre air moteur"],
+    "category": "moteur"
+  },
+  {
+    "id": "mot_003",
+    "objectName": "Alternateur",
+    "keywords": ["alternateur", "alternator", "charge", "batterie", "courant", "tension", "génère", "électricité", "courroie"],
+    "status": "CRITIQUE",
+    "confidence": 0.80,
+    "problem": "L'alternateur ne génère plus suffisamment de courant pour recharger la batterie et alimenter les équipements électriques.",
+    "thinking": [
+      "Un alternateur défaillant se traduit par une batterie qui se décharge rapidement malgré le moteur en marche",
+      "La tension de sortie normale d'un alternateur est de 13,5 à 14,5V au multimètre",
+      "Les diodes du pont redresseur sont souvent la première cause de défaillance"
+    ],
+    "steps": [
+      "Mesurer la tension aux bornes de la batterie moteur tournant — doit être entre 13,5V et 14,5V",
+      "Vérifier la courroie d'alternateur : tension et absence de craquèlement",
+      "Inspecter les connexions électriques sur l'alternateur",
+      "Tester le pont de diodes au multimètre en mode diode",
+      "Contrôler le régulateur de tension intégré"
+    ],
+    "parts": ["Pont de diodes alternateur", "Régulateur de tension", "Courroie alternateur", "Roulements alternateur"],
+    "searchTerms": ["pont diodes alternateur", "régulateur tension alternateur", "courroie alternateur"],
+    "category": "moteur"
+  },
+  {
+    "id": "pom_001",
+    "objectName": "Pompe à eau centrifuge",
+    "keywords": ["pompe", "pump", "eau", "water", "centrifuge", "aspire", "refoule", "débit", "pression", "irrigation", "amorçage"],
+    "status": "ATTENTION",
+    "confidence": 0.82,
+    "problem": "La pompe centrifuge présente une perte de débit ou ne démarre pas, probablement due à un problème d'amorçage, une roue encrassée ou un joint défectueux.",
+    "thinking": [
+      "Une pompe centrifuge qui ne débite plus est souvent désamorcée — de l'air est entré dans le circuit",
+      "Un bruit de cavitation indique que la pompe aspire de l'air ou que la hauteur d'aspiration est trop grande",
+      "L'usure de la roue ou du joint mécanique provoque des fuites et une perte de pression"
+    ],
+    "steps": [
+      "Vérifier que la pompe est bien amorcée : ouvrir le bouchon de purge et remplir d'eau",
+      "Contrôler l'étanchéité du circuit d'aspiration — le moindre défaut provoque une désamorce",
+      "Inspecter le joint mécanique : présence de fuite en gouttes régulières indique l'usure",
+      "Nettoyer la roue de tout débris (sable, feuilles, calcaire)",
+      "Vérifier que la hauteur d'aspiration ne dépasse pas 7 mètres",
+      "Contrôler le sens de rotation du moteur"
+    ],
+    "parts": ["Joint mécanique (garniture)", "Roue centrifuge", "Joint torique corps de pompe", "Crépine d'aspiration"],
+    "searchTerms": ["joint mécanique pompe centrifuge", "roue pompe eau remplacement", "garniture pompe"],
+    "category": "pompe"
+  },
+  {
+    "id": "pom_002",
+    "objectName": "Pompe solaire immergée",
+    "keywords": ["pompe", "solaire", "solar", "immergée", "submersible", "puits", "forage", "panneau", "photovoltaïque", "MPPT"],
+    "status": "ATTENTION",
+    "confidence": 0.79,
+    "problem": "La pompe solaire immergée ne fonctionne pas ou a un débit insuffisant, possiblement lié au panneau solaire, au contrôleur ou au moteur immergé.",
+    "thinking": [
+      "Un système solaire qui ne pompe pas en plein soleil indique un problème électrique avant d'être mécanique",
+      "La tension du panneau doit être mesurée en charge — une chute importante signale un panneau dégradé",
+      "Le sable fin peut bloquer la roue immergée progressivement"
+    ],
+    "steps": [
+      "Mesurer la tension du panneau solaire au multimètre en plein soleil",
+      "Vérifier le contrôleur de pompe : LED de statut, protection contre la marche à sec",
+      "Contrôler les connexions et la section des câbles",
+      "Remonter la pompe et vérifier que la roue tourne librement",
+      "Nettoyer le filtre en bas de la pompe",
+      "Tester le moteur immergé à la résistance au multimètre"
+    ],
+    "parts": ["Contrôleur de pompe solaire MPPT", "Câble immergé 2x2.5mm²", "Filtre crépine pompe immergée", "Roue pompe immergée"],
+    "searchTerms": ["contrôleur pompe solaire MPPT", "pompe immergée solaire réparation", "câble pompe immergée"],
+    "category": "pompe"
+  },
+  {
+    "id": "elec_001",
+    "objectName": "Carte électronique",
+    "keywords": ["carte", "circuit", "électronique", "board", "PCB", "composant", "condensateur", "résistance", "brûlé", "grillé", "trace", "soudure"],
+    "status": "CRITIQUE",
+    "confidence": 0.77,
+    "problem": "La carte électronique présente des composants défectueux visibles (traces de brûlure, condensateurs bombés, pistes rompues) nécessitant une réparation ciblée.",
+    "thinking": [
+      "Les traces de brûlure noire indiquent une surtension ou un court-circuit localisé",
+      "Les condensateurs électrolytiques bombés sont la panne la plus fréquente sur les cartes vieillissantes",
+      "Une piste rompue ou corrodée crée une coupure de circuit qui peut simuler une panne totale"
+    ],
+    "steps": [
+      "Photographier la carte avant tout démontage",
+      "Inspecter à la loupe : chercher composants brûlés, condensateurs bombés, pistes noircies",
+      "Mesurer chaque condensateur suspect au capacimètre",
+      "Tester les diodes et transistors au multimètre en mode diode",
+      "Recharger les pistes rompues avec de la soudure ou du fil de cuivre fin",
+      "Remplacer les composants défectueux à la soudure (fer 40W minimum)"
+    ],
+    "parts": ["Condensateurs électrolytiques (série selon valeurs)", "Kit résistances assorties", "Flux de soudure", "Mèche à dessouder"],
+    "searchTerms": ["condensateur électrolytique remplacement", "kit soudure électronique", "flux soudure CMS"],
+    "category": "electronique"
+  },
+  {
+    "id": "elec_002",
+    "objectName": "Onduleur inverseur",
+    "keywords": ["onduleur", "inverseur", "inverter", "UPS", "batterie", "tension", "220V", "12V", "24V", "convertit", "autonomie", "coupure"],
+    "status": "CRITIQUE",
+    "confidence": 0.80,
+    "problem": "L'onduleur ne convertit plus correctement la tension continue en tension alternative, ou la batterie associée ne tient plus la charge.",
+    "thinking": [
+      "Un onduleur qui s'éteint sous charge indique soit une batterie épuisée soit une protection thermique",
+      "La tension de sortie incorrecte signale un problème de l'étage de puissance (MOSFET ou IGBT)",
+      "Un sifflement haute fréquence anormal indique souvent un condensateur de filtrage défectueux"
+    ],
+    "steps": [
+      "Mesurer la tension de la batterie sous charge : ne doit pas descendre sous 10,5V pour du 12V",
+      "Vérifier la tension de sortie AC à vide et en charge au voltmètre",
+      "Inspecter les transistors de puissance pour traces de brûlure",
+      "Contrôler le ventilateur de refroidissement",
+      "Vérifier les fusibles internes",
+      "Tester les condensateurs de filtrage à l'entrée DC"
+    ],
+    "parts": ["Transistors MOSFET IRF3205", "Condensateurs 4700µF 16V", "Fusibles internes", "Ventilateur 12V"],
+    "searchTerms": ["MOSFET IRF3205 onduleur", "condensateur filtrage onduleur", "réparation onduleur 12V 220V"],
+    "category": "electronique"
+  },
+  {
+    "id": "elec_003",
+    "objectName": "Panneau solaire photovoltaïque",
+    "keywords": ["panneau", "solaire", "photovoltaïque", "solar", "panel", "cellule", "tension", "watt", "délamination", "MC4", "production"],
+    "status": "ATTENTION",
+    "confidence": 0.74,
+    "problem": "Le panneau solaire produit une puissance insuffisante par rapport à ses spécifications, dû à de l'ombrage partiel, une délamination ou des connexions dégradées.",
+    "thinking": [
+      "Un seul module ombragé peut réduire la production du panneau entier de 50%",
+      "La délamination crée des points chauds et dégrade les cellules progressivement",
+      "Les boîtes de jonction mal étanchéifiées s'oxydent et créent une résistance parasite"
+    ],
+    "steps": [
+      "Mesurer la tension en circuit ouvert (Voc) et le courant de court-circuit (Isc) en plein soleil",
+      "Comparer avec les valeurs nominales de la plaque signalétique",
+      "Inspecter visuellement les cellules pour fissures, décolorations, points noirs",
+      "Vérifier la boîte de jonction : connexions, diodes bypass, étanchéité",
+      "Nettoyer la surface avec de l'eau et une éponge douce",
+      "Identifier et éliminer toute source d'ombrage partiel"
+    ],
+    "parts": ["Diodes bypass 10A 45V", "Connecteurs MC4", "Mastic d'étanchéité silicone"],
+    "searchTerms": ["diode bypass panneau solaire", "connecteur MC4 panneau solaire", "boîte jonction solaire réparation"],
+    "category": "electronique"
+  },
+  {
+    "id": "men_001",
+    "objectName": "Réfrigérateur congélateur",
+    "keywords": ["réfrigérateur", "frigo", "congélateur", "fridge", "freezer", "refroidit", "compresseur", "gaz", "froid", "température", "givre"],
+    "status": "CRITIQUE",
+    "confidence": 0.81,
+    "problem": "Le réfrigérateur ne refroidit plus suffisamment, probablement dû à un compresseur défaillant, une fuite de frigorigène ou un dégivrage insuffisant.",
+    "thinking": [
+      "Un réfrigérateur qui ne refroidit pas avec compresseur qui tourne indique souvent une fuite de gaz frigorigène",
+      "Si le compresseur ne démarre pas, le relais de démarrage ou le condensateur sont les premières causes",
+      "Un évaporateur givré en bloc empêche la circulation d'air"
+    ],
+    "steps": [
+      "Vérifier que le thermostat est bien réglé et fonctionnel",
+      "Écouter le compresseur : tourne-t-il ? Fait-il un cliquetis au démarrage ?",
+      "Dégivrer complètement l'évaporateur si givre excessif (débrancher 24h)",
+      "Vérifier les joints de porte — un joint défectueux fait entrer l'air chaud",
+      "Tester le relais de démarrage du compresseur (le secouer : ne doit pas cliqueter)",
+      "Contrôler le condenseur à l'arrière : doit être propre et chaud au toucher"
+    ],
+    "parts": ["Relais de démarrage compresseur", "Condensateur de démarrage", "Joint de porte magnétique", "Thermostat réfrigérateur"],
+    "searchTerms": ["relais démarrage compresseur réfrigérateur", "joint porte réfrigérateur", "thermostat réfrigérateur remplacement"],
+    "category": "menager"
+  },
+  {
+    "id": "men_002",
+    "objectName": "Groupe électrogène",
+    "keywords": ["groupe", "électrogène", "générateur", "generator", "genset", "essence", "diesel", "courant", "tension", "AVR", "éclairage"],
+    "status": "CRITIQUE",
+    "confidence": 0.82,
+    "problem": "Le groupe électrogène ne produit pas de courant ou la tension de sortie est instable, souvent lié au régulateur de tension (AVR) ou au moteur thermique.",
+    "thinking": [
+      "Un groupe qui tourne mais ne produit pas d'électricité a perdu son aimantation résiduelle ou son AVR est défaillant",
+      "Une tension instable indique un AVR défectueux ou des charbons de l'alternateur usés",
+      "Un groupe qui cale sous charge a un problème de carburateur ou de régulateur de vitesse"
+    ],
+    "steps": [
+      "Vérifier le carburant, l'huile et le filtre à air avant tout",
+      "Mesurer la tension de sortie au multimètre à vide",
+      "Localiser et inspecter l'AVR (régulateur automatique de tension)",
+      "Contrôler les charbons de l'alternateur intégré",
+      "Tester la résistance des enroulements de l'alternateur",
+      "Réaimanter l'alternateur si tension nulle (procédure à la batterie 12V)"
+    ],
+    "parts": ["AVR régulateur automatique de tension", "Charbons alternateur groupe", "Bougie d'allumage", "Filtre à huile groupe"],
+    "searchTerms": ["AVR régulateur tension groupe électrogène", "charbons alternateur groupe électrogène", "réparation groupe électrogène"],
+    "category": "menager"
+  },
+  {
+    "id": "men_003",
+    "objectName": "Machine à laver",
+    "keywords": ["machine", "laver", "washing", "tambour", "essorage", "remplissage", "vidange", "fuite", "programme"],
+    "status": "ATTENTION",
+    "confidence": 0.78,
+    "problem": "La machine à laver présente un dysfonctionnement de cycle — problème de remplissage, de vidange ou d'essorage.",
+    "thinking": [
+      "Un problème de remplissage pointe vers l'électrovanne d'eau ou le pressostat de niveau",
+      "Une mauvaise vidange est le plus souvent due à un filtre de pompe obstrué",
+      "Un essorage inefficace peut indiquer des charbons de moteur usés"
+    ],
+    "steps": [
+      "Nettoyer le filtre de pompe de vidange (trappe en bas de la machine)",
+      "Vérifier le tuyau de vidange : pas de pliure ni d'obstruction",
+      "Inspecter les électrovannes d'eau froide/chaude",
+      "Tester le pressostat en soufflant dans son tuyau",
+      "Vérifier les charbons du moteur si essorage faible",
+      "Contrôler le filtre d'alimentation en eau"
+    ],
+    "parts": ["Filtre pompe de vidange", "Électrovanne eau machine à laver", "Charbons moteur", "Courroie essorage"],
+    "searchTerms": ["filtre pompe vidange machine à laver", "électrovanne machine à laver", "charbons moteur machine laver"],
+    "category": "menager"
+  },
+  {
+    "id": "med_001",
+    "objectName": "Pompe à perfusion",
+    "keywords": ["pompe", "perfusion", "pousse-seringue", "infusion", "pump", "IV", "débit", "alarme", "médical", "hôpital", "syringe", "cathéter"],
+    "status": "CRITIQUE",
+    "confidence": 0.85,
+    "problem": "La pompe à perfusion déclenche des alarmes répétées ou présente un débit inexact, nécessitant une vérification urgente avant toute utilisation patient.",
+    "thinking": [
+      "Une alarme d'occlusion indique un obstacle dans la ligne de perfusion",
+      "Un débit inexact peut être dû à l'usure du mécanisme de poussée ou une seringue mal positionnée",
+      "Les alarmes de batterie faible doivent être traitées immédiatement sur équipement médical critique"
+    ],
+    "steps": [
+      "ARRÊTER l'administration au patient si alarme active — sécurité avant tout",
+      "Vérifier le type d'alarme sur l'écran : occlusion, air, batterie, fin de dose",
+      "Pour alarme occlusion : inspecter toute la tubulure, déclamper si clamp fermé",
+      "Pour alarme air : purger la ligne complètement avant de relancer",
+      "Vérifier que la seringue ou la poche est correctement installée",
+      "Contacter la maintenance biomédicale si le problème persiste"
+    ],
+    "parts": ["Batterie pompe à perfusion", "Tubulure de perfusion compatible", "Seringue compatible"],
+    "searchTerms": ["batterie pompe perfusion remplacement", "tubulure perfusion compatible", "maintenance pompe perfusion"],
+    "category": "medical"
+  },
+  {
+    "id": "med_002",
+    "objectName": "Concentrateur d'oxygène",
+    "keywords": ["oxygène", "concentrateur", "oxygen", "concentrator", "litre", "pureté", "filtre", "zéolite", "compresseur", "médical", "respiration"],
+    "status": "CRITIQUE",
+    "confidence": 0.84,
+    "problem": "Le concentrateur d'oxygène produit un débit ou une pureté insuffisants, souvent lié aux tamis moléculaires saturés ou au compresseur affaibli.",
+    "thinking": [
+      "Un concentrateur qui produit de l'oxygène impur (< 90%) a ses tamis zéolite saturés",
+      "Les filtres à air obstrués réduisent l'efficacité de séparation et surchauffent le compresseur",
+      "Une alarme de pureté doit être prise très au sérieux — l'oxygène insuffisant est dangereux"
+    ],
+    "steps": [
+      "VÉRIFIER IMMÉDIATEMENT la pureté si patient sous oxygène",
+      "Nettoyer ou remplacer tous les filtres à air (entrée et bactérien)",
+      "Vérifier que les grilles de ventilation ne sont pas obstruées",
+      "S'assurer que la pièce est bien ventilée",
+      "Contrôler le débit réel avec un débitmètre",
+      "Appeler maintenance biomédicale si pureté < 90%"
+    ],
+    "parts": ["Filtre à air concentrateur O2", "Filtre bactérien concentrateur O2", "Canule nasale"],
+    "searchTerms": ["filtre concentrateur oxygène remplacement", "filtre bactérien concentrateur O2", "entretien concentrateur oxygène"],
+    "category": "medical"
+  },
+  {
+    "id": "med_003",
+    "objectName": "Autoclave stérilisateur",
+    "keywords": ["stérilisateur", "autoclave", "stérilisation", "vapeur", "pression", "cycle", "médical", "chirurgical", "instrument", "134"],
+    "status": "CRITIQUE",
+    "confidence": 0.80,
+    "problem": "L'autoclave ne complète pas son cycle de stérilisation ou n'atteint pas la pression et température requises (134°C / 2 bars).",
+    "thinking": [
+      "Un autoclave qui n'atteint pas la pression requise a souvent un joint de porte usé",
+      "Le détartrage insuffisant crée des dépôts sur la résistance et les capteurs",
+      "Une soupape de sécurité défaillante peut bloquer la montée en pression"
+    ],
+    "steps": [
+      "Ne jamais utiliser un autoclave qui n'atteint pas les paramètres requis",
+      "Inspecter et remplacer le joint de porte si traces de fuite de vapeur",
+      "Détartrer complètement la chambre avec solution détartrante adaptée",
+      "Vérifier la soupape de sécurité",
+      "Contrôler le thermostat et la sonde de température",
+      "Utiliser exclusivement de l'eau distillée"
+    ],
+    "parts": ["Joint de porte autoclave", "Soupape de sécurité autoclave", "Solution détartrante", "Sonde température"],
+    "searchTerms": ["joint porte autoclave remplacement", "détartrant autoclave médical", "soupape sécurité autoclave"],
+    "category": "medical"
+  },
+  {
+    "id": "med_004",
+    "objectName": "Oxymètre de pouls",
+    "keywords": ["oxymètre", "oxymétrie", "SpO2", "saturation", "pouls", "oxygène", "capteur", "doigt", "lecture", "médical"],
+    "status": "ATTENTION",
+    "confidence": 0.83,
+    "problem": "L'oxymètre affiche des valeurs erronées ou intermittentes, souvent lié à un capteur encrassé, une mauvaise position du doigt ou une batterie faible.",
+    "thinking": [
+      "Un oxymètre instable indique généralement un mauvais contact entre le capteur et le doigt",
+      "La saleté ou le vernis à ongles sur le capteur interfère avec la lecture optique",
+      "Une batterie faible peut causer des lectures erratiques"
+    ],
+    "steps": [
+      "Nettoyer délicatement le capteur optique avec un chiffon doux légèrement humide",
+      "Repositionner correctement le doigt (index ou majeur, pas trop serré)",
+      "S'assurer que l'ongle est propre et sans vernis",
+      "Remplacer les piles ou recharger la batterie",
+      "Tester sur plusieurs doigts pour vérifier la cohérence",
+      "Comparer avec un autre appareil si valeurs douteuses"
+    ],
+    "parts": ["Piles AAA ou AA selon modèle", "Câble capteur doigt de remplacement"],
+    "searchTerms": ["capteur doigt oxymètre remplacement", "piles oxymètre médical", "sonde SpO2 compatible"],
+    "category": "medical"
+  },
+  {
+    "id": "med_005",
+    "objectName": "Nébuliseur aérosolthérapie",
+    "keywords": ["nébuliseur", "nébulisation", "aérosol", "nebulizer", "compresseur", "masque", "inhalation", "asthme", "bronche", "brume"],
+    "status": "ATTENTION",
+    "confidence": 0.79,
+    "problem": "Le nébuliseur ne produit plus de brouillard ou le débit est insuffisant, dû à un filtre obstrué, un pistolet encrassé ou un compresseur affaibli.",
+    "thinking": [
+      "Un nébuliseur qui ne produit plus de brume a souvent son filtre à air complètement obstrué",
+      "Le pistolet de nébulisation se bouche avec les résidus de médicaments si non rincé",
+      "Un compresseur fatigué ne génère plus la pression suffisante"
+    ],
+    "steps": [
+      "Remplacer ou nettoyer le filtre à air côté compresseur",
+      "Démonter et rincer abondamment le pistolet à l'eau distillée",
+      "Vérifier que le tuyau de connexion n'est pas plié",
+      "Mesurer le débit si possible (doit être ≥ 6 L/min)",
+      "Stériliser le masque et le pistolet selon protocole fabricant",
+      "Remplacer le pistolet si nébulisation toujours insuffisante"
+    ],
+    "parts": ["Filtre à air nébuliseur", "Pistolet de nébulisation", "Masque adulte/enfant nébuliseur", "Tuyau de connexion"],
+    "searchTerms": ["filtre nébuliseur remplacement", "pistolet nébulisation remplacement", "kit nébuliseur complet"],
+    "category": "medical"
+  },
+  {
+    "id": "med_006",
+    "objectName": "Tensiomètre électronique",
+    "keywords": ["tensiomètre", "tension", "artérielle", "pression", "blood pressure", "brassard", "mesure", "médical", "mmHg"],
+    "status": "ATTENTION",
+    "confidence": 0.81,
+    "problem": "Le tensiomètre affiche des valeurs incohérentes ou une erreur, souvent lié au brassard, à la détection du pouls ou à la batterie.",
+    "thinking": [
+      "Un brassard mal positionné ou de mauvaise taille est la cause la plus fréquente de mesures incorrectes",
+      "Une fuite d'air dans le brassard empêche l'atteinte de la pression nécessaire",
+      "Les batteries faibles affectent la précision avant l'arrêt complet"
+    ],
+    "steps": [
+      "Vérifier le positionnement du brassard : 2 cm au-dessus du pli du coude",
+      "Inspecter le tuyau du brassard pour fissures ou coudes",
+      "Tester l'étanchéité : gonfler et observer si la pression chute",
+      "Remplacer les piles avec des piles neuves",
+      "Patient assis, bras au niveau du cœur, au repos depuis 5 minutes",
+      "Valider avec un tensiomètre de référence si doute"
+    ],
+    "parts": ["Brassard de remplacement taille S/M/L", "Piles AA ou AAA", "Tuyau brassard"],
+    "searchTerms": ["brassard tensiomètre remplacement", "piles tensiomètre électronique", "tuyau brassard tension artérielle"],
+    "category": "medical"
+  },
+  {
+    "id": "agri_001",
+    "objectName": "Motopompe agricole",
+    "keywords": ["motopompe", "agricole", "irrigation", "arrosage", "champ", "tuyau", "aspersion", "goutte", "débit", "pression", "culture"],
+    "status": "ATTENTION",
+    "confidence": 0.80,
+    "problem": "La motopompe agricole n'assure plus un débit suffisant pour l'irrigation, due à un problème d'amorçage, d'usure de la roue ou de colmatage.",
+    "thinking": [
+      "Une motopompe qui tourne mais ne débite pas est typiquement désamorcée ou a sa roue usée",
+      "Le sable et les particules dans l'eau usent rapidement les organes internes",
+      "Un tuyau d'aspiration percé empêche l'amorçage"
+    ],
+    "steps": [
+      "Vérifier et rétablir l'amorçage (remplir le corps de pompe par le bouchon de purge)",
+      "Inspecter le tuyau d'aspiration et ses raccords pour fuites d'air",
+      "Nettoyer la crépine d'aspiration obstruée par des débris",
+      "Vérifier l'usure de la roue et du diffuseur",
+      "Contrôler le joint de roue (garniture d'étanchéité)",
+      "Vérifier la courroie d'entraînement si motopompe à courroie"
+    ],
+    "parts": ["Roue de pompe agricole", "Garniture d'étanchéité", "Crépine aspiration", "Courroie trapézoïdale"],
+    "searchTerms": ["roue pompe agricole remplacement", "joint mécanique motopompe", "crépine aspiration pompe irrigation"],
+    "category": "agricole"
+  },
+  {
+    "id": "agri_002",
+    "objectName": "Pulvérisateur agricole",
+    "keywords": ["pulvérisateur", "sprayer", "buse", "traitement", "produit", "phyto", "pression", "lance", "gicleur", "pesticide", "herbicide"],
+    "status": "ATTENTION",
+    "confidence": 0.77,
+    "problem": "Le pulvérisateur ne maintient pas la pression ou les buses sont obstruées, entraînant un traitement phytosanitaire inefficace.",
+    "thinking": [
+      "Les buses bouchées sont la panne la plus fréquente — les dépôts de produits cristallisent",
+      "Un clapet anti-retour défectueux empêche la montée en pression",
+      "La membrane de la pompe se perfore avec les produits acides concentrés"
+    ],
+    "steps": [
+      "Démonter et nettoyer toutes les buses à l'eau claire et brosse fine",
+      "Purger complètement le circuit après chaque utilisation",
+      "Inspecter le filtre de cuve et le filtre de lance",
+      "Vérifier le clapet anti-retour de la pompe",
+      "Contrôler l'état de la membrane de pompe",
+      "Vérifier les joints du raccord de lance et du couvercle de cuve"
+    ],
+    "parts": ["Buses de pulvérisation", "Membrane de pompe pulvérisateur", "Kit joints pulvérisateur", "Filtre de cuve"],
+    "searchTerms": ["buse pulvérisateur agricole", "membrane pompe pulvérisateur", "kit réparation pulvérisateur"],
+    "category": "agricole"
+  },
+  {
+    "id": "info_001",
+    "objectName": "Ordinateur portable",
+    "keywords": ["ordinateur", "laptop", "portable", "computer", "écran", "clavier", "batterie", "ventilateur", "lent", "chauffe", "démarre"],
+    "status": "ATTENTION",
+    "confidence": 0.76,
+    "problem": "L'ordinateur portable présente des problèmes de performance, de surchauffe ou de démarrage, souvent liés à la poussière, la batterie ou le disque dur.",
+    "thinking": [
+      "Un ordinateur qui chauffe excessivement a généralement le ventilateur obstrué par la poussière",
+      "Un démarrage lent ou des ralentissements indiquent un disque dur défaillant ou une mémoire insuffisante",
+      "Une batterie qui ne tient plus charge est la pièce la plus souvent remplacée sur un laptop"
+    ],
+    "steps": [
+      "Nettoyer le ventilateur et les grilles de ventilation avec de l'air comprimé",
+      "Vérifier la température avec un logiciel (HWMonitor) — ne doit pas dépasser 90°C",
+      "Remplacer la pâte thermique sur le processeur si nettoyage insuffisant",
+      "Tester le disque dur avec CrystalDiskInfo — chercher secteurs défectueux",
+      "Effectuer un test de mémoire RAM avec MemTest86",
+      "Calibrer ou remplacer la batterie si autonomie < 30 minutes"
+    ],
+    "parts": ["Pâte thermique processeur", "Batterie de remplacement (référence modèle)", "SSD de remplacement", "Ventilateur interne"],
+    "searchTerms": ["pâte thermique processeur laptop", "batterie ordinateur portable remplacement", "SSD remplacement laptop"],
+    "category": "informatique"
+  },
+  {
+    "id": "info_002",
+    "objectName": "Téléphone smartphone",
+    "keywords": ["téléphone", "smartphone", "mobile", "phone", "écran", "batterie", "charge", "tactile", "caméra", "réseau", "recharge"],
+    "status": "ATTENTION",
+    "confidence": 0.79,
+    "problem": "Le smartphone présente des problèmes de charge, d'écran ou de performance, le plus souvent liés à la batterie, au connecteur ou à un composant logiciel.",
+    "thinking": [
+      "Une batterie qui gonfle est une urgence — risque d'explosion si percée",
+      "Un connecteur de charge endommagé ou encrassé est la cause la plus fréquente de problème de recharge",
+      "Un écran fissuré avec tactile qui ne répond plus nécessite le remplacement du module complet"
+    ],
+    "steps": [
+      "Nettoyer le connecteur de charge avec une brosse fine et de l'air comprimé",
+      "Tester avec un autre câble et chargeur avant de conclure à une panne matérielle",
+      "Vérifier si la batterie gonfle (dos du téléphone bombé) — remplacer immédiatement",
+      "Pour un écran fissuré : utiliser le téléphone avec précaution jusqu'au remplacement",
+      "Effectuer une réinitialisation usine si problèmes logiciels persistants (sauvegarder d'abord)",
+      "Vérifier les mises à jour système en attente"
+    ],
+    "parts": ["Batterie de remplacement (référence modèle exact)", "Module écran tactile complet", "Connecteur de charge"],
+    "searchTerms": ["batterie smartphone remplacement", "écran tactile smartphone remplacement", "connecteur charge téléphone"],
+    "category": "informatique"
+  }
+]

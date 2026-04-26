@@ -1,16 +1,14 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:taara/theme/app_theme.dart';
 import 'package:taara/widgets/global_widgets.dart';
 import 'package:taara/models/diagnostic_model.dart';
+import 'package:taara/services/gemma_service.dart';
 import 'package:taara/services/history_service.dart';
-import 'package:taara/config/env.dart';
 
 class VoiceScreen extends StatefulWidget {
   const VoiceScreen({super.key});
@@ -26,8 +24,9 @@ class _VoiceScreenState extends State<VoiceScreen>
   _Mode _mode = _Mode.idle;
   String _transcription = '';
   File? _imageFile;
+  bool _isOfflineMode = false;
 
-  // ── Speech to Text ──────────────────────────────────────────────────────────
+  // ── Speech to Text ─────────────────────────────────────────────────────────
   final SpeechToText _speech = SpeechToText();
   bool _speechAvailable = false;
   String _currentLocale = 'fr_FR';
@@ -71,7 +70,6 @@ class _VoiceScreenState extends State<VoiceScreen>
     );
   }
 
-  // ── Initialisation Speech ───────────────────────────────────────────────────
   Future<void> _initSpeech() async {
     _speechAvailable = await _speech.initialize(
       onStatus: (status) {
@@ -87,13 +85,13 @@ class _VoiceScreenState extends State<VoiceScreen>
         if (mounted) {
           setState(() => _mode = _Mode.idle);
           showTaaraSnackbar(context,
-              '⚠️ Erreur vocale — essayez de parler plus fort', isError: true);
+              '⚠️ Erreur vocale — essayez de parler plus fort',
+              isError: true);
         }
       },
     );
 
     if (_speechAvailable) {
-      // Cherche la locale française
       final locales = await _speech.locales();
       final frLocale = locales.firstWhere(
         (l) => l.localeId.startsWith('fr'),
@@ -105,11 +103,11 @@ class _VoiceScreenState extends State<VoiceScreen>
     if (mounted) setState(() {});
   }
 
-  // ── Démarrer l'enregistrement ───────────────────────────────────────────────
   Future<void> _startListening() async {
     if (!_speechAvailable) {
       showTaaraSnackbar(
-          context, '⚠️ Reconnaissance vocale non disponible', isError: true);
+          context, '⚠️ Reconnaissance vocale non disponible',
+          isError: true);
       return;
     }
 
@@ -123,7 +121,6 @@ class _VoiceScreenState extends State<VoiceScreen>
         if (mounted) {
           setState(() {
             _transcription = result.recognizedWords;
-            // Mise à jour du champ texte en temps réel
             if (result.recognizedWords.isNotEmpty) {
               _textCtrl.text = result.recognizedWords;
             }
@@ -139,13 +136,11 @@ class _VoiceScreenState extends State<VoiceScreen>
     );
   }
 
-  // ── Arrêter l'enregistrement ────────────────────────────────────────────────
   Future<void> _stopListening() async {
     await _speech.stop();
     if (mounted) setState(() => _mode = _Mode.idle);
   }
 
-  // ── Image depuis galerie ────────────────────────────────────────────────────
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(
@@ -158,37 +153,49 @@ class _VoiceScreenState extends State<VoiceScreen>
     }
   }
 
-  // ── Analyse Gemma 4 ─────────────────────────────────────────────────────────
   Future<void> _analyze() async {
-    final description =
-        _textCtrl.text.trim().isNotEmpty ? _textCtrl.text.trim() : _transcription;
+    final description = _textCtrl.text.trim().isNotEmpty
+        ? _textCtrl.text.trim()
+        : _transcription;
 
     if (description.isEmpty && _imageFile == null) {
       showTaaraSnackbar(
-          context, '⚠️ Parlez ou décrivez le problème', isError: true);
+          context, '⚠️ Parlez ou décrivez le problème',
+          isError: true);
       return;
     }
 
-    // Arrête l'écoute si encore active
     if (_speech.isListening) await _speech.stop();
 
     setState(() {
       _mode = _Mode.analyzing;
+      _isOfflineMode = false;
       for (int i = 0; i < _stepsVisible.length; i++) {
         _stepsVisible[i] = false;
       }
     });
+
+    // Vérifie connectivité
+    final online = await GemmaService.isOnline();
+    if (mounted) setState(() => _isOfflineMode = !online);
 
     for (int i = 0; i < _analyzeSteps.length - 1; i++) {
       await Future.delayed(Duration(milliseconds: 700 * (i + 1)));
       if (mounted) setState(() => _stepsVisible[i] = true);
     }
 
-    DiagnosticModel result;
+    // Appel via le nouveau GemmaService (online → cache → offline)
+    DiagnosticResult result;
     try {
-      result = await _callGemma(description, _imageFile);
+      result = await GemmaService.analyzeText(
+        description: description,
+        image: _imageFile,
+      );
     } catch (e) {
-      result = DiagnosticModel.empty();
+      result = DiagnosticResult(
+        model: DiagnosticModel.empty(),
+        source: DiagnosticSource.error,
+      );
     }
 
     if (mounted) {
@@ -197,91 +204,12 @@ class _VoiceScreenState extends State<VoiceScreen>
         _mode = _Mode.idle;
       });
       await Future.delayed(const Duration(milliseconds: 400));
-      await HistoryService.add(result);
+      await HistoryService.add(result.model);
       if (mounted) {
+        // Passe le DiagnosticResult complet pour que ResultScreen affiche le badge source
         Navigator.pushNamed(context, '/result', arguments: result);
       }
     }
-  }
-
-  Future<DiagnosticModel> _callGemma(String description, File? image) async {
-    final apiKey = Env.geminiApiKey;
-    if (apiKey.isEmpty) return DiagnosticModel.empty();
-
-    const url =
-        'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent';
-
-    final prompt = '''
-Tu es Taara, expert en diagnostic technique de machines et équipements.
-Un utilisateur décrit oralement un problème avec un équipement.
-
-Description : "$description"
-
-Réponds UNIQUEMENT en JSON valide avec cette structure :
-{
-  "objectName": "nom exact de l équipement décrit",
-  "confidence": 0.80,
-  "status": "ATTENTION",
-  "problem": "synthèse claire du problème détecté",
-  "thinking": [
-    "première observation basée sur la description",
-    "deuxième observation technique",
-    "conclusion du diagnostic"
-  ],
-  "steps": [
-    "étape 1 de réparation concrète",
-    "étape 2",
-    "étape 3"
-  ],
-  "parts": ["pièce nécessaire 1", "pièce nécessaire 2"]
-}
-status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
-''';
-
-    final List<Map<String, dynamic>> parts = [
-      {'text': prompt}
-    ];
-
-    if (image != null) {
-      final bytes = await image.readAsBytes();
-      final b64 = base64Encode(bytes);
-      final ext = image.path.toLowerCase().split('.').last;
-      final mime = ext == 'png' ? 'image/png' : 'image/jpeg';
-      parts.insert(0, {
-        'inline_data': {'mime_type': mime, 'data': b64}
-      });
-    }
-
-    final response = await http
-        .post(
-          Uri.parse('$url?key=$apiKey'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'contents': [
-              {'parts': parts}
-            ],
-            'generationConfig': {
-              'temperature': 0.2,
-              'maxOutputTokens': 1024,
-            },
-          }),
-        )
-        .timeout(const Duration(seconds: 60));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final partsList = data['candidates'][0]['content']['parts'] as List;
-      final textPart = partsList.lastWhere(
-        (p) => p['thought'] != true,
-        orElse: () => partsList.last,
-      );
-      final text = (textPart['text'] as String)
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
-      return DiagnosticModel.fromJson(jsonDecode(text));
-    }
-    return DiagnosticModel.empty();
   }
 
   @override
@@ -293,18 +221,17 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
     super.dispose();
   }
 
-  // ── UI ──────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Diagnostic vocal',
-            style: GoogleFonts.poppins(fontSize: 16)),
+        title:
+            Text('Diagnostic vocal', style: GoogleFonts.poppins(fontSize: 16)),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16),
-            child: Center(child: OfflineBadge()),
+            child: Center(child: OfflineBadge(isOffline: false)),
           ),
         ],
       ),
@@ -366,7 +293,8 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
           Row(
             children: [
               Icon(Icons.mic_rounded,
-                  color: isRecording ? AppTheme.accent : AppTheme.primary,
+                  color:
+                      isRecording ? AppTheme.accent : AppTheme.primary,
                   size: 20),
               const SizedBox(width: 8),
               Text(
@@ -377,7 +305,6 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
                     color: isRecording ? AppTheme.accent : Colors.white),
               ),
               const Spacer(),
-              // Badge disponibilité
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -402,7 +329,6 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
           ),
           const SizedBox(height: 20),
 
-          // ── Bouton micro ──────────────────────────────────────────────────
           GestureDetector(
             onTap: _speechAvailable
                 ? (isRecording ? _stopListening : _startListening)
@@ -450,7 +376,6 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
 
           const SizedBox(height: 14),
 
-          // Statut
           Text(
             !_speechAvailable
                 ? 'Non disponible sur cet appareil'
@@ -473,13 +398,11 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
             textAlign: TextAlign.center,
           ),
 
-          // Ondes animées pendant l'écoute
           if (isRecording) ...[
             const SizedBox(height: 16),
             _buildWaves(),
           ],
 
-          // Transcription en temps réel
           if (_transcription.isNotEmpty && !isRecording) ...[
             const SizedBox(height: 14),
             Container(
@@ -522,8 +445,11 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(9, (i) {
-            final heights = [8.0, 16.0, 28.0, 36.0, 44.0, 36.0, 28.0, 16.0, 8.0];
-            final factor = i % 2 == 0 ? _wave.value : (1 - _wave.value + 0.3);
+            final heights = [
+              8.0, 16.0, 28.0, 36.0, 44.0, 36.0, 28.0, 16.0, 8.0
+            ];
+            final factor =
+                i % 2 == 0 ? _wave.value : (1 - _wave.value + 0.3);
             return Container(
               width: 4,
               height: heights[i] * factor.clamp(0.3, 1.0),
@@ -573,8 +499,8 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide:
-                    const BorderSide(color: AppTheme.primary, width: 1.5),
+                borderSide: const BorderSide(
+                    color: AppTheme.primary, width: 1.5),
               ),
               contentPadding: const EdgeInsets.all(14),
             ),
@@ -632,8 +558,8 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
                 TextButton(
                   onPressed: () => setState(() => _imageFile = null),
                   child: const Text('Supprimer',
-                      style:
-                          TextStyle(color: AppTheme.accent, fontSize: 12)),
+                      style: TextStyle(
+                          color: AppTheme.accent, fontSize: 12)),
                 ),
               ],
             ),
@@ -723,6 +649,32 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
                   letterSpacing: 2,
                   fontSize: 14),
             ),
+            if (_isOfflineMode) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: AppTheme.primary.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.offline_bolt_rounded,
+                        color: AppTheme.primary, size: 12),
+                    SizedBox(width: 6),
+                    Text('Mode hors-ligne — cache local',
+                        style: TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 28),
             for (int i = 0; i < _analyzeSteps.length; i++)
               AnimatedOpacity(

@@ -6,6 +6,7 @@ class DiagnosticModel {
   final List<String> thinking;
   final List<String> steps;
   final List<String> parts;
+  final List<String> searchTerms; // Termes de recherche pour commander les pièces
   final DateTime? analyzedAt;
 
   DiagnosticModel({
@@ -16,6 +17,7 @@ class DiagnosticModel {
     required this.thinking,
     required this.steps,
     required this.parts,
+    this.searchTerms = const [],
     this.analyzedAt,
   });
 
@@ -29,6 +31,7 @@ class DiagnosticModel {
       thinking: List<String>.from(json['thinking'] ?? []),
       steps: List<String>.from(json['steps'] ?? []),
       parts: List<String>.from(json['parts'] ?? []),
+      searchTerms: List<String>.from(json['searchTerms'] ?? []),
       analyzedAt: DateTime.now(),
     );
   }
@@ -43,6 +46,7 @@ class DiagnosticModel {
       thinking: List<String>.from(map['thinking'] ?? []),
       steps: List<String>.from(map['steps'] ?? []),
       parts: List<String>.from(map['parts'] ?? []),
+      searchTerms: List<String>.from(map['searchTerms'] ?? []),
       analyzedAt: map['analyzedAt'] != null
           ? DateTime.tryParse(map['analyzedAt'])
           : null,
@@ -58,6 +62,7 @@ class DiagnosticModel {
       'thinking': thinking,
       'steps': steps,
       'parts': parts,
+      'searchTerms': searchTerms,
       'analyzedAt': (analyzedAt ?? DateTime.now()).toIso8601String(),
     };
   }
@@ -73,6 +78,7 @@ class DiagnosticModel {
       thinking: [],
       steps: [],
       parts: [],
+      searchTerms: [],
       analyzedAt: DateTime.now(),
     );
   }

@@ -36,6 +36,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   ];
   final List<bool> _thinkingVisible = [false, false, false, false];
 
+  // Mode de connexion affiché pendant l'analyse
+  bool _isOfflineMode = false;
+
   @override
   void initState() {
     super.initState();
@@ -84,7 +87,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       debugPrint('Erreur capture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur lors de la capture')));
+            const SnackBar(content: Text('Erreur lors de la capture')));
       }
     }
   }
@@ -112,10 +115,17 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   Future<void> _runAnalysis(File imageFile) async {
     setState(() {
       _isAnalyzing = true;
+      _isOfflineMode = false;
       for (int i = 0; i < _thinkingVisible.length; i++) {
         _thinkingVisible[i] = false;
       }
     });
+
+    // Vérifie la connectivité en amont pour adapter le message
+    final online = await GemmaService.isOnline();
+    if (mounted) {
+      setState(() => _isOfflineMode = !online);
+    }
 
     // Afficher les étapes de raisonnement progressivement
     for (int i = 0; i < _thinkingLines.length - 1; i++) {
@@ -123,7 +133,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       if (mounted) setState(() => _thinkingVisible[i] = true);
     }
 
-    // Appel réel à Gemma 4
+    // Appel Gemma 4 (online → cache → offline)
     final result = await GemmaService.analyzeImage(imageFile);
 
     if (mounted) setState(() => _thinkingVisible[3] = true);
@@ -133,13 +143,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       setState(() => _isAnalyzing = false);
 
       // Sauvegarder dans l'historique
-      await HistoryService.add(result);
+      await HistoryService.add(result.model);
 
-      // Naviguer vers le résultat
+      // Naviguer vers le résultat en passant le DiagnosticResult complet
       await Navigator.pushNamed(context, '/result', arguments: result);
 
-      // Retourner le résultat au HomeScreen
-      if (mounted) Navigator.pop(context, result);
+      // Retourner le modèle au HomeScreen
+      if (mounted) Navigator.pop(context, result.model);
     }
   }
 
@@ -198,12 +208,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                // Bouton vocal — accès rapide depuis le scan
                 GestureDetector(
                   onTap: () => Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const VoiceScreen()),
+                    MaterialPageRoute(builder: (_) => const VoiceScreen()),
                   ),
                   child: Container(
                     margin: const EdgeInsets.only(right: 12),
@@ -348,17 +356,13 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           ),
           borderRadius: BorderRadius.only(
             topLeft: top != null && left != null
-                ? const Radius.circular(8)
-                : Radius.zero,
+                ? const Radius.circular(8) : Radius.zero,
             topRight: top != null && right != null
-                ? const Radius.circular(8)
-                : Radius.zero,
+                ? const Radius.circular(8) : Radius.zero,
             bottomLeft: bottom != null && left != null
-                ? const Radius.circular(8)
-                : Radius.zero,
+                ? const Radius.circular(8) : Radius.zero,
             bottomRight: bottom != null && right != null
-                ? const Radius.circular(8)
-                : Radius.zero,
+                ? const Radius.circular(8) : Radius.zero,
           ),
         ),
       ),
@@ -398,6 +402,32 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 fontSize: 14,
               ),
             ),
+            // Badge offline pendant l'analyse
+            if (_isOfflineMode) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.offline_bolt_rounded,
+                        color: AppTheme.primary, size: 12),
+                    SizedBox(width: 6),
+                    Text('Mode hors-ligne — cache local',
+                        style: TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             for (int i = 0; i < _thinkingLines.length; i++)
               AnimatedOpacity(
@@ -469,8 +499,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               ? AppTheme.primary.withOpacity(0.2)
               : Colors.white.withOpacity(0.1),
           shape: BoxShape.circle,
-          border:
-              Border.all(color: active ? AppTheme.primary : Colors.white24),
+          border: Border.all(
+              color: active ? AppTheme.primary : Colors.white24),
         ),
         child: Icon(icon,
             color: active ? AppTheme.primary : Colors.white, size: 24),
