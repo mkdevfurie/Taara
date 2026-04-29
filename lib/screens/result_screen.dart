@@ -228,6 +228,8 @@ class _ResultScreenState extends State<ResultScreen> {
               _buildOfflineBanner(isCached: true),
             if (source == DiagnosticSource.offlineEmpty)
               _buildOfflineBanner(isCached: false),
+            if (source == DiagnosticSource.knowledgeBase)
+              _buildOfflineBanner(isCached: true, isKnowledgeBase: true),
 
             _buildHeader(diagnostic),
             const SizedBox(height: 20),
@@ -255,36 +257,54 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   // ── Bannière mode offline ─────────────────────────────────────────────────
-  Widget _buildOfflineBanner({required bool isCached}) {
+  Widget _buildOfflineBanner({required bool isCached, bool isKnowledgeBase = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isCached
-            ? AppTheme.primary.withOpacity(0.08)
-            : AppTheme.accent.withOpacity(0.08),
+        color: isKnowledgeBase
+            ? Colors.blueAccent.withOpacity(0.08)
+            : isCached
+                ? AppTheme.primary.withOpacity(0.08)
+                : AppTheme.accent.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCached
-              ? AppTheme.primary.withOpacity(0.3)
-              : AppTheme.accent.withOpacity(0.3),
+          color: isKnowledgeBase
+              ? Colors.blueAccent.withOpacity(0.3)
+              : isCached
+                  ? AppTheme.primary.withOpacity(0.3)
+                  : AppTheme.accent.withOpacity(0.3),
         ),
       ),
       child: Row(
         children: [
           Icon(
-            isCached ? Icons.offline_bolt_rounded : Icons.wifi_off_rounded,
-            color: isCached ? AppTheme.primary : AppTheme.accent,
+            isKnowledgeBase
+                ? Icons.library_books_outlined
+                : isCached
+                    ? Icons.offline_bolt_rounded
+                    : Icons.wifi_off_rounded,
+            color: isKnowledgeBase
+                ? Colors.blueAccent
+                : isCached
+                    ? AppTheme.primary
+                    : AppTheme.accent,
             size: 18,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              isCached
-                  ? 'Mode hors-ligne — résultat issu du cache local Taara'
-                  : 'Hors-ligne et aucun cache disponible. Connectez-vous pour analyser.',
+              isKnowledgeBase
+                  ? 'Base locale Taara • 21 pannes disponibles hors-ligne'
+                  : isCached
+                      ? 'Mode hors-ligne — résultat issu du cache local Taara'
+                      : 'Hors-ligne et aucun cache disponible. Connectez-vous pour analyser.',
               style: TextStyle(
-                color: isCached ? AppTheme.primary : AppTheme.accent,
+                color: isKnowledgeBase
+                    ? Colors.blueAccent
+                    : isCached
+                        ? AppTheme.primary
+                        : AppTheme.accent,
                 fontSize: 12,
                 height: 1.4,
               ),
@@ -557,10 +577,31 @@ class _SourceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOnline = source == DiagnosticSource.online;
-    final color = isOnline ? Colors.greenAccent : AppTheme.primary;
-    final label = isOnline ? 'En ligne' : 'Hors-ligne';
-    final icon = isOnline ? Icons.cloud_done_outlined : Icons.offline_bolt_rounded;
+    final Color color;
+    final String label;
+    final IconData icon;
+
+    switch (source) {
+      case DiagnosticSource.online:
+        color = Colors.greenAccent;
+        label = 'En ligne';
+        icon = Icons.cloud_done_outlined;
+        break;
+      case DiagnosticSource.knowledgeBase:
+        color = Colors.blueAccent;
+        label = 'Base locale';
+        icon = Icons.library_books_outlined;
+        break;
+      case DiagnosticSource.offline:
+        color = AppTheme.primary;
+        label = 'Cache local';
+        icon = Icons.offline_bolt_rounded;
+        break;
+      default:
+        color = AppTheme.accent;
+        label = 'Hors-ligne';
+        icon = Icons.wifi_off_rounded;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

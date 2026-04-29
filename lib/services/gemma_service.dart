@@ -148,7 +148,7 @@ Règles strictes :
         } else {
           debugPrint('API Error ${response.statusCode}: ${response.body}');
           // Tentative de fallback sur le cache
-          return await _fallbackToCache(description: description);
+          return await _fallbackToCache(description: '');
         }
       } on SocketException {
         debugPrint('GemmaService: Connexion perdue — fallback cache');

@@ -9,33 +9,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # API & réseau
   http: ^1.2.0
-  connectivity_plus: ^6.0.3
 
   # Fonts
   google_fonts: ^6.2.1
 
-  # Caméra
+  # Caméra & galerie
   camera: ^0.11.0+2
   image_picker: ^1.1.2
-
-  # Animations
-  animations: ^2.0.11
-
-  # State management
-  provider: ^6.1.2
-
-  # Navigation
-  go_router: ^13.2.0
-
-  # Utils
-  shimmer: ^3.0.0
 
   # Persistance locale
   shared_preferences: ^2.3.0
 
-  # Reconnaissance vocale native Android
+  # Reconnaissance vocale
   speech_to_text: ^7.0.0
+
+  # Ouvrir liens externes (bouton Commander)
   url_launcher: ^6.2.5
 
 dev_dependencies:
