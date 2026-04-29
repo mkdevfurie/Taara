@@ -32,7 +32,7 @@ class GemmaService {
   }
 
   // ── Analyse d'image : online → cache → offline ───────────────────────────
-  static Future<DiagnosticResult> analyzeImage(File imageFile) async {
+  static Future<DiagnosticResult> analyzeImage(File imageFile, {String offlineHint = ''}) async {
     if (!hasApiKey) {
       debugPrint('GemmaService: Aucune clé API — mode dégradé');
       return DiagnosticResult(
@@ -148,19 +148,19 @@ Règles strictes :
         } else {
           debugPrint('API Error ${response.statusCode}: ${response.body}');
           // Tentative de fallback sur le cache
-          return await _fallbackToCache(description: '');
+          return await _fallbackToCache(description: offlineHint);
         }
       } on SocketException {
         debugPrint('GemmaService: Connexion perdue — fallback cache');
-        return await _fallbackToCache(description: '');
+        return await _fallbackToCache(description: offlineHint);
       } catch (e) {
         debugPrint('GemmaService error: $e');
-        return await _fallbackToCache(description: '');
+        return await _fallbackToCache(description: offlineHint);
       }
     } else {
       // Mode offline : réponse depuis le cache
       debugPrint('GemmaService: Pas de connexion — mode offline');
-      return await _fallbackToCache(description: '');
+      return await _fallbackToCache(description: offlineHint);
     }
   }
 

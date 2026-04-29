@@ -22,6 +22,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   bool _isCameraReady = false;
   bool _isAnalyzing = false;
   bool _torchOn = false;
+  String _offlineDescription = ''; // Description saisie par l'utilisateur en mode offline
 
   late AnimationController _cornerController;
   late Animation<double> _cornerAnim;
@@ -112,6 +113,174 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Dialog de sélection rapide quand l'appareil est hors-ligne
+  // Retourne null si l'utilisateur annule
+  Future<String?> _askOfflineDescription() async {
+    final categories = [
+      {'label': 'Moteur / Alternateur', 'value': 'moteur électrique alternateur'},
+      {'label': 'Pompe à eau', 'value': 'pompe eau centrifuge'},
+      {'label': 'Pompe solaire', 'value': 'pompe solaire immergée'},
+      {'label': 'Carte électronique', 'value': 'carte électronique circuit'},
+      {'label': 'Onduleur / Batterie', 'value': 'onduleur inverseur batterie'},
+      {'label': 'Panneau solaire', 'value': 'panneau solaire photovoltaïque'},
+      {'label': 'Réfrigérateur', 'value': 'réfrigérateur congélateur compresseur'},
+      {'label': 'Groupe électrogène', 'value': 'groupe électrogène générateur'},
+      {'label': 'Machine à laver', 'value': 'machine à laver'},
+      {'label': 'Pompe à perfusion', 'value': 'pompe perfusion médical'},
+      {'label': 'Concentrateur O₂', 'value': 'concentrateur oxygène médical'},
+      {'label': 'Prise / Installation élec.', 'value': 'prise électrique installation'},
+      {'label': 'Ordinateur / Téléphone', 'value': 'ordinateur téléphone smartphone'},
+      {'label': 'Autre…', 'value': ''},
+    ];
+
+    String? selected;
+    final TextEditingController manualCtrl = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0E1420),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.offline_bolt_rounded, color: Color(0xFFC9A84C), size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Mode hors-ligne — Que scannez-vous ?',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Taara va chercher dans sa base locale (21 pannes).',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: categories.map((cat) {
+                  final isSelected = selected == cat['value'];
+                  return GestureDetector(
+                    onTap: () => setModalState(() => selected = cat['value']),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFC9A84C).withOpacity(0.15)
+                            : Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFC9A84C)
+                              : Colors.white24,
+                        ),
+                      ),
+                      child: Text(
+                        cat['label']!,
+                        style: TextStyle(
+                          color: isSelected
+                              ? const Color(0xFFC9A84C)
+                              : Colors.white70,
+                          fontSize: 13,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              // Champ texte libre si "Autre"
+              if (selected == '') ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: manualCtrl,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Ex : prise électrique, ventilateur…',
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.05),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: Color(0xFFC9A84C), width: 1.5),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Annuler',
+                          style: TextStyle(color: Colors.white54)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: selected == null
+                          ? null
+                          : () {
+                              final val = selected == ''
+                                  ? manualCtrl.text.trim()
+                                  : selected!;
+                              Navigator.pop(ctx, val);
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC9A84C),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Analyser',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (selected == null) return null;
+    return selected == '' ? manualCtrl.text.trim() : selected;
+  }
+
   Future<void> _runAnalysis(File imageFile) async {
     setState(() {
       _isAnalyzing = true;
@@ -123,8 +292,19 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
     // Vérifie la connectivité en amont pour adapter le message
     final online = await GemmaService.isOnline();
-    if (mounted) {
-      setState(() => _isOfflineMode = !online);
+    if (mounted) setState(() => _isOfflineMode = !online);
+
+    // Si hors-ligne : demander à l'utilisateur ce qu'il scanne
+    // pour que la base de connaissances retourne le bon résultat
+    String offlineHint = '';
+    if (!online && mounted) {
+      final desc = await _askOfflineDescription();
+      if (desc == null) {
+        // L'utilisateur a annulé
+        if (mounted) setState(() => _isAnalyzing = false);
+        return;
+      }
+      offlineHint = desc;
     }
 
     // Afficher les étapes de raisonnement progressivement
@@ -133,8 +313,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       if (mounted) setState(() => _thinkingVisible[i] = true);
     }
 
-    // Appel Gemma 4 (online → cache → offline)
-    final result = await GemmaService.analyzeImage(imageFile);
+    // Appel Gemma 4 (online → KB avec hint → cache → erreur)
+    final result = await GemmaService.analyzeImage(imageFile, offlineHint: offlineHint);
 
     if (mounted) setState(() => _thinkingVisible[3] = true);
     await Future.delayed(const Duration(milliseconds: 500));
