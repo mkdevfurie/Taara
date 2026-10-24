@@ -34,11 +34,8 @@ class GemmaService {
   // ── Analyse d'image : online → cache → offline ───────────────────────────
   static Future<DiagnosticResult> analyzeImage(File imageFile, {String offlineHint = ''}) async {
     if (!hasApiKey) {
-      debugPrint('GemmaService: Aucune clé API — mode dégradé');
-      return DiagnosticResult(
-        model: DiagnosticModel.empty(),
-        source: DiagnosticSource.error,
-      );
+      debugPrint('GemmaService: Aucune clé API — mode hors-ligne');
+      return _fallbackToCache(description: offlineHint);
     }
 
     final online = await isOnline();
@@ -170,10 +167,7 @@ Règles strictes :
     File? image,
   }) async {
     if (!hasApiKey) {
-      return DiagnosticResult(
-        model: DiagnosticModel.empty(),
-        source: DiagnosticSource.error,
-      );
+      return _fallbackToCache(description: description);
     }
 
     final online = await isOnline();
@@ -255,13 +249,13 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
           return DiagnosticResult(model: model, source: DiagnosticSource.online);
         }
 
-        return await _fallbackToCache(description: '');
+        return await _fallbackToCache(description: description);
       } catch (e) {
         debugPrint('GemmaService.analyzeText error: $e');
-        return await _fallbackToCache(description: '');
+        return await _fallbackToCache(description: description);
       }
     } else {
-      return await _fallbackToCache(description: '');
+      return await _fallbackToCache(description: description);
     }
   }
 
@@ -290,26 +284,11 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
   /// Retourne le diagnostic le plus pertinent depuis le cache offline,
   /// puis la base de connaissances locale, puis un message d\'erreur.
   static Future<DiagnosticResult> _fallbackToCache({String description = ''}) async {
-    // 1. Essai depuis le cache SharedPreferences (diagnostics déjà effectués)
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_cacheKey);
-      if (raw != null) {
-        final List<dynamic> cache = jsonDecode(raw);
-        if (cache.isNotEmpty) {
-          final model = DiagnosticModel.fromMap(
-            Map<String, dynamic>.from(cache.first),
-          );
-          debugPrint('GemmaService: résultat depuis cache SharedPreferences');
-          return DiagnosticResult(model: model, source: DiagnosticSource.offline);
-        }
-      }
-    } catch (e) {
-      debugPrint('GemmaService._fallbackToCache cache error: $e');
-    }
+    final hasDescription = description.trim().isNotEmpty;
 
-    // 2. Recherche dans la base de connaissances embarquée (offline dès le 1er lancement)
-    if (description.trim().isNotEmpty) {
+    // 1. Avec une description : base de connaissances embarquée (pertinente
+    //    pour le problème décrit), puis un diagnostic en cache du même objet.
+    if (hasDescription) {
       try {
         final kbResult = await KnowledgeBaseService.search(description);
         if (kbResult != null) {
@@ -319,6 +298,23 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
       } catch (e) {
         debugPrint('GemmaService._fallbackToCache KB error: $e');
       }
+    }
+
+    // 2. Cache SharedPreferences (diagnostics déjà effectués en ligne)
+    try {
+      final cache = await loadCache();
+      if (cache.isNotEmpty) {
+        final query = description.toLowerCase();
+        final match = hasDescription
+            ? cache.where((m) => query.contains(m.objectName.toLowerCase())).firstOrNull
+            : cache.first;
+        if (match != null) {
+          debugPrint('GemmaService: résultat depuis cache SharedPreferences');
+          return DiagnosticResult(model: match, source: DiagnosticSource.offline);
+        }
+      }
+    } catch (e) {
+      debugPrint('GemmaService._fallbackToCache cache error: $e');
     }
 
     // 3. Aucune source disponible

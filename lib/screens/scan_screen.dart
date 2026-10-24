@@ -4,7 +4,6 @@ import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taara/theme/app_theme.dart';
-import 'package:taara/models/diagnostic_model.dart';
 import 'package:taara/services/gemma_service.dart';
 import 'package:taara/services/history_service.dart';
 import 'package:taara/screens/voice_screen.dart';
@@ -22,7 +21,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   bool _isCameraReady = false;
   bool _isAnalyzing = false;
   bool _torchOn = false;
-  String _offlineDescription = ''; // Description saisie par l'utilisateur en mode offline
 
   late AnimationController _cornerController;
   late Animation<double> _cornerAnim;

@@ -247,6 +247,16 @@ class _ResultScreenState extends State<ResultScreen> {
               onTap: () =>
                   Navigator.pushNamed(context, '/guide', arguments: diagnostic),
             ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/pros', arguments: diagnostic),
+                icon: const Icon(Icons.engineering_rounded, color: AppTheme.primary),
+                label: const Text('TROUVER UN RÉPARATEUR'),
+              ),
+            ),
             const SizedBox(height: 20),
             _buildSafetyWarning(),
             const SizedBox(height: 32),
