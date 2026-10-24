@@ -6,9 +6,15 @@ import 'package:taara/screens/scan_screen.dart';
 import 'package:taara/screens/result_screen.dart';
 import 'package:taara/screens/guide_screen.dart';
 import 'package:taara/screens/voice_screen.dart';
+import 'package:taara/screens/auth_screen.dart';
+import 'package:taara/screens/pros_screen.dart';
+import 'package:taara/screens/my_jobs_screen.dart';
+import 'package:taara/screens/job_chat_screen.dart';
+import 'package:taara/services/api_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ApiService.loadSession();
   runApp(const TaaraApp());
 }
 
@@ -29,6 +35,10 @@ class TaaraApp extends StatelessWidget {
         '/voice': (context) => const VoiceScreen(),
         '/result': (context) => const ResultScreen(),
         '/guide': (context) => const GuideScreen(),
+        '/auth': (context) => const AuthScreen(),
+        '/pros': (context) => const ProsScreen(),
+        '/my-jobs': (context) => const MyJobsScreen(),
+        '/chat': (context) => const JobChatScreen(),
       },
     );
   }

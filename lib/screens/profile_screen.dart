@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taara/theme/app_theme.dart';
 import 'package:taara/widgets/global_widgets.dart';
 import 'package:taara/services/history_service.dart';
+import 'package:taara/services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -126,6 +127,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildAvatar(),
                   const SizedBox(height: 28),
+                  _buildAccountCard(),
+                  const SizedBox(height: 24),
                   _buildProfileCard(),
                   const SizedBox(height: 24),
                   _buildStatsSection(),
@@ -175,6 +178,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  // ── Compte TAARA (marketplace des réparateurs) ─────────────────────────────
+  Widget _buildAccountCard() {
+    return ValueListenableBuilder<TaaraUser?>(
+      valueListenable: ApiService.currentUser,
+      builder: (context, user, _) {
+        return TaaraCard(
+          withGoldBorder: user == null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.verified_user_outlined,
+                      color: AppTheme.primary, size: 18),
+                  const SizedBox(width: 8),
+                  const Text('Compte TAARA',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Colors.white)),
+                  const Spacer(),
+                  if (user != null)
+                    Text(user.isPro ? 'PRO' : 'CLIENT',
+                        style: const TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                user == null
+                    ? 'Connectez-vous pour contacter un réparateur vérifié et suivre vos demandes.'
+                    : '${user.fullName}\n${user.email}',
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
+              ),
+              const SizedBox(height: 14),
+              if (user == null)
+                GoldButton(
+                  label: 'SE CONNECTER',
+                  icon: Icons.login_rounded,
+                  height: 48,
+                  onTap: () => Navigator.pushNamed(context, '/auth'),
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/my-jobs'),
+                        icon: const Icon(Icons.assignment_outlined,
+                            size: 18, color: AppTheme.primary),
+                        label: Text(user.isPro ? 'MES JOBS' : 'MES DEMANDES',
+                            style: const TextStyle(fontSize: 12)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      tooltip: 'Déconnexion',
+                      onPressed: () async {
+                        await ApiService.logout();
+                        if (mounted) showTaaraSnackbar(context, 'Déconnecté');
+                      },
+                      icon: const Icon(Icons.logout_rounded,
+                          color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

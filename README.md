@@ -128,23 +128,33 @@ cd Taara
 # Install dependencies
 flutter pub get
 
-# Configure your API key
-# Create lib/config/env.dart :
-```
-
-```dart
-class Env {
-  static const String geminiApiKey = 'YOUR_GEMINI_API_KEY_HERE';
-}
-```
-
-```bash
-# Run on Android device
-flutter run
+# Run on Android device (configuration injectée à la compilation, rien n'est versionné)
+flutter run \
+  --dart-define=GEMINI_API_KEY=YOUR_GEMINI_API_KEY \
+  --dart-define=TAARA_API_URL=http://10.0.2.2:3000/api/v1
 
 # Build release APK
-flutter build apk --split-per-abi --release
+flutter build apk --split-per-abi --release \
+  --dart-define=GEMINI_API_KEY=YOUR_GEMINI_API_KEY \
+  --dart-define=TAARA_API_URL=https://api.taara.app/api/v1
 ```
+
+| Variable | Rôle | Défaut |
+|---|---|---|
+| `GEMINI_API_KEY` | Diagnostic Gemma 4 en ligne | vide → mode hors-ligne (cache + base embarquée) |
+| `TAARA_API_URL` | Backend TAARA ([Taara_backend](https://github.com/mkdevfurie/Taara_backend)) | `http://10.0.2.2:3000/api/v1` (backend local vu depuis l'émulateur) |
+
+En debug, le trafic HTTP en clair est autorisé (backend local) ; les builds release restent en HTTPS.
+
+### Marketplace des réparateurs
+
+Depuis l'écran de résultat, **« Trouver un réparateur »** :
+
+1. liste les pros vérifiés (filtres spécialité / ville) ;
+2. demande la connexion (ou l'inscription client / pro) si nécessaire ;
+3. envoie le diagnostic Taara au backend et crée la demande avec un budget estimé.
+
+Le suivi se fait dans **Profil → Mes demandes** (client : annuler, discuter, déclarer le paiement en espèces, noter) ou **Mes jobs** (pro : accepter avec un prix, refuser, démarrer, terminer). Le chat client ↔ pro est rafraîchi toutes les 5 s.
 
 ### Android Permissions
 
@@ -201,7 +211,7 @@ This project is submitted for:
 ```
 lib/
 ├── config/
-│   └── env.dart              # API key (gitignored)
+│   └── env.dart              # Config via --dart-define (aucun secret versionné)
 ├── models/
 │   └── diagnostic_model.dart # Data model
 ├── screens/
@@ -211,10 +221,15 @@ lib/
 │   ├── voice_screen.dart     # Voice diagnosis
 │   ├── result_screen.dart    # AI results
 │   ├── guide_screen.dart     # Repair guide
+│   ├── auth_screen.dart      # Connexion / inscription TAARA
+│   ├── pros_screen.dart      # Recherche de réparateurs + demande
+│   ├── my_jobs_screen.dart   # Suivi demandes (client) / interventions (pro)
+│   ├── job_chat_screen.dart  # Chat client ↔ réparateur
 │   ├── history_screen.dart   # Diagnostic history
 │   └── profile_screen.dart   # User profile
 ├── services/
 │   ├── gemma_service.dart    # Gemma 4 API + cache
+│   ├── api_service.dart      # Client backend TAARA (JWT + refresh)
 │   └── history_service.dart  # Local persistence
 ├── theme/
 │   └── app_theme.dart        # Design system
@@ -227,8 +242,8 @@ lib/
 
 ## 🔐 Security
 
-- API key stored in `lib/config/env.dart` (gitignored)
-- No user data sent to external servers except Gemma 4 API
+- API key injected at build time with `--dart-define` (never committed)
+- Diagnostics stay on the device unless the user sends a repair request to a professional (then sent to the TAARA backend)
 - All history stored locally on device
 - No analytics or tracking
 
