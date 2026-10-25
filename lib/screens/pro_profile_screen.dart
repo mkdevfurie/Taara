@@ -32,6 +32,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
   final _rateCtrl = TextEditingController();
   final _expCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
+  final _guarantorNameCtrl = TextEditingController();
+  final _guarantorPhoneCtrl = TextEditingController();
   final Set<String> _specialties = {};
   List<String> _certifications = [];
   String? _proId;
@@ -59,6 +61,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
     _rateCtrl.dispose();
     _expCtrl.dispose();
     _bioCtrl.dispose();
+    _guarantorNameCtrl.dispose();
+    _guarantorPhoneCtrl.dispose();
     super.dispose();
   }
 
@@ -89,6 +93,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
           final exp = (pro['experience'] ?? 0) as num;
           _expCtrl.text = exp > 0 ? '$exp' : '';
           _bioCtrl.text = pro['bio'] ?? '';
+          _guarantorNameCtrl.text = pro['guarantorName'] ?? '';
+          _guarantorPhoneCtrl.text = pro['guarantorPhone'] ?? '';
         }
         _loading = false;
       });
@@ -105,7 +111,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
         if ((double.tryParse(_rateCtrl.text) ?? 0) <= 0) 'votre tarif horaire',
         if (_bioCtrl.text.trim().length < 20)
           'une présentation (20 caractères min.)',
-        if (_certifications.isEmpty) 'au moins un justificatif',
+        if (_certifications.isEmpty && _guarantorPhoneCtrl.text.trim().isEmpty)
+          'un justificatif ou une personne garante',
       ];
 
   Future<void> _save() async {
@@ -127,6 +134,8 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
         'hourlyRate': double.tryParse(_rateCtrl.text.replaceAll(' ', '')) ?? 0,
         'experience': int.tryParse(_expCtrl.text) ?? 0,
         'bio': _bioCtrl.text.trim(),
+        'guarantorName': _guarantorNameCtrl.text.trim(),
+        'guarantorPhone': _guarantorPhoneCtrl.text.replaceAll(' ', ''),
       });
       if (mounted) showTaaraSnackbar(context, 'Fiche enregistrée ✓');
     } on ApiException catch (e) {
@@ -227,6 +236,32 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                     'Ce que vous réparez, votre atelier, vos horaires…',
                     Icons.notes_rounded,
                     maxLines: 4),
+                const SizedBox(height: 24),
+                _label('Pas de diplôme ? Pas de problème'),
+                const Text(
+                  'Beaucoup de bons réparateurs ont appris en apprentissage. Pour être vérifié, '
+                  'il suffit de montrer votre savoir-faire : photos de réparations que vous avez '
+                  'faites (avant / après), de votre atelier et de vos outils, attestation de votre '
+                  'patron d\'apprentissage… ou une personne qui peut se porter garante. '
+                  'L\'équipe Taara peut aussi vous appeler en vidéo.',
+                  style: TextStyle(
+                      color: Colors.white70, fontSize: 12, height: 1.45),
+                ),
+                const SizedBox(height: 12),
+                _field(
+                    _guarantorNameCtrl,
+                    'Personne garante (facultatif)',
+                    'Ex : votre ancien patron, un client régulier',
+                    Icons.handshake_outlined),
+                const SizedBox(height: 12),
+                _field(_guarantorPhoneCtrl, 'Téléphone de la personne garante',
+                    '+228 90 00 00 00', Icons.phone_outlined,
+                    keyboard: TextInputType.phone),
+                const SizedBox(height: 6),
+                const Text(
+                  'Visible uniquement par l\'équipe Taara, qui pourra l\'appeler.',
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                ),
                 const SizedBox(height: 16),
                 _saving
                     ? const Center(
@@ -237,9 +272,10 @@ class _ProProfileScreenState extends State<ProProfileScreen> {
                         icon: Icons.save_outlined,
                         onTap: _save),
                 const SizedBox(height: 28),
-                _label('Justificatifs'),
+                _label('Preuves de savoir-faire'),
                 const Text(
-                  'Diplôme, attestation d\'un employeur, carte professionnelle ou photo de votre atelier. '
+                  'Photos de vos réparations, de votre atelier, attestation de votre patron '
+                  'd\'apprentissage, diplôme ou carte professionnelle si vous en avez. '
                   'Seule l\'équipe Taara les voit, pour vérifier votre profil.',
                   style: TextStyle(
                       color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
