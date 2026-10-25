@@ -52,7 +52,12 @@ class _AuthScreenState extends State<AuthScreen> {
           : await ApiService.login(_emailCtrl.text, _passwordCtrl.text);
       if (!mounted) return;
       showTaaraSnackbar(context, 'Bienvenue ${user.firstName} ✓');
-      Navigator.pop(context, true);
+      if (_isRegister && user.isPro) {
+        // Nouveau réparateur : on l'amène directement à sa fiche (nécessaire pour être vérifié)
+        Navigator.pushReplacementNamed(context, '/pro-profile', result: true);
+      } else {
+        Navigator.pop(context, true);
+      }
     } on ApiException catch (e) {
       if (mounted) showTaaraSnackbar(context, e.message, isError: true);
     } finally {

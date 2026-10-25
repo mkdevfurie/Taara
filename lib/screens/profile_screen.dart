@@ -230,6 +230,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               else
                 Row(
                   children: [
+                    if (user.isPro) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/pro-profile'),
+                          icon: const Icon(Icons.badge_outlined,
+                              size: 18, color: AppTheme.primary),
+                          label: const Text('MA FICHE',
+                              style: TextStyle(fontSize: 12)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () =>

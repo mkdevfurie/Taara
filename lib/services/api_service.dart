@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taara/config/env.dart';
 import 'package:taara/models/diagnostic_model.dart';
@@ -184,6 +185,56 @@ class ApiService {
   static Future<void> deleteAccount(String password) async {
     await _request('DELETE', '/users/me', body: {'password': password});
     await _clearSession();
+  }
+
+  // ── Fiche réparateur ─────────────────────────────────────────────────────
+
+  /// Profil complet de l'utilisateur connecté (inclut `professional` pour un pro).
+  static Future<Map<String, dynamic>> me() async =>
+      Map<String, dynamic>.from(await _request('GET', '/users/me') as Map);
+
+  static Future<Map<String, dynamic>> updateProfessional(
+      String id, Map<String, dynamic> data) async {
+    return Map<String, dynamic>.from(
+        await _request('PUT', '/professionals/$id', body: data) as Map);
+  }
+
+  static Future<void> removeCertification(String id, String url) =>
+      _request('DELETE', '/professionals/$id/certifications', body: {'url': url});
+
+  /// Envoie un justificatif (photo de diplôme, attestation, atelier…), 10 Mo max.
+  static Future<void> uploadCertification(
+      String professionalId, List<int> bytes, String filename) async {
+    Future<http.StreamedResponse> send() {
+      final req = http.MultipartRequest(
+          'POST', Uri.parse('${Env.apiBaseUrl}/professionals/$professionalId/certifications'))
+        ..headers['Authorization'] = 'Bearer ${_accessToken ?? ''}';
+      final lower = filename.toLowerCase();
+      final type = lower.endsWith('.png')
+          ? MediaType('image', 'png')
+          : lower.endsWith('.webp')
+              ? MediaType('image', 'webp')
+              : lower.endsWith('.pdf')
+                  ? MediaType('application', 'pdf')
+                  : MediaType('image', 'jpeg');
+      req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename, contentType: type));
+      return req.send().timeout(const Duration(seconds: 60));
+    }
+
+    await loadSession();
+    try {
+      var res = await send();
+      if (res.statusCode == 401 && await _refresh()) res = await send();
+      final body = await res.stream.bytesToString();
+      if (res.statusCode >= 200 && res.statusCode < 300) return;
+      throw ApiException(_errorMessage(_tryDecode(body), res.statusCode), statusCode: res.statusCode);
+    } on TimeoutException {
+      throw const ApiException('Envoi trop long, vérifiez votre connexion.');
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Envoi impossible. Vérifiez internet.');
+    }
   }
 
   // ── Professionnels ────────────────────────────────────────────────────────

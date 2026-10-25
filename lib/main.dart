@@ -11,6 +11,7 @@ import 'package:taara/screens/auth_screen.dart';
 import 'package:taara/screens/pros_screen.dart';
 import 'package:taara/screens/my_jobs_screen.dart';
 import 'package:taara/screens/job_chat_screen.dart';
+import 'package:taara/screens/pro_profile_screen.dart';
 import 'package:taara/services/api_service.dart';
 import 'package:taara/services/realtime_service.dart';
 
@@ -103,6 +104,7 @@ class _TaaraAppState extends State<TaaraApp> {
         '/pros': (context) => const ProsScreen(),
         '/my-jobs': (context) => const MyJobsScreen(),
         '/chat': (context) => const JobChatScreen(),
+        '/pro-profile': (context) => const ProProfileScreen(),
       },
     );
   }
