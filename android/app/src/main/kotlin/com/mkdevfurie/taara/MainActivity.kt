@@ -1,4 +1,4 @@
-package com.example.taara
+package com.mkdevfurie.taara
 
 import io.flutter.embedding.android.FlutterActivity
 

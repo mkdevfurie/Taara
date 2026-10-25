@@ -93,11 +93,13 @@ class _VoiceScreenState extends State<VoiceScreen>
 
     if (_speechAvailable) {
       final locales = await _speech.locales();
-      final frLocale = locales.firstWhere(
-        (l) => l.localeId.startsWith('fr'),
-        orElse: () => locales.first,
-      );
-      _currentLocale = frLocale.localeId;
+      // Certains appareils ne renvoient aucune langue : on garde la langue par défaut
+      final fr = locales.where((l) => l.localeId.startsWith('fr'));
+      if (fr.isNotEmpty) {
+        _currentLocale = fr.first.localeId;
+      } else if (locales.isNotEmpty) {
+        _currentLocale = locales.first.localeId;
+      }
     }
 
     if (mounted) setState(() {});
@@ -484,6 +486,8 @@ class _VoiceScreenState extends State<VoiceScreen>
           const SizedBox(height: 14),
           TextField(
             controller: _textCtrl,
+            // Réactive le bouton « Analyser » dès que l'utilisateur tape
+            onChanged: (_) => setState(() {}),
             maxLines: 4,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(

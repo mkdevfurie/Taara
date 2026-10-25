@@ -73,6 +73,13 @@ class ApiService {
   static final ValueNotifier<TaaraUser?> currentUser = ValueNotifier(null);
 
   static TaaraUser? get user => _user;
+  static String? get accessToken => _accessToken;
+
+  /// Rafraîchit le jeton d'accès (utilisé par la connexion temps réel).
+  static Future<bool> refreshSession() async {
+    await loadSession();
+    return _refresh();
+  }
   static bool get isLoggedIn => _accessToken != null && _user != null;
 
   // ── Session ───────────────────────────────────────────────────────────────
@@ -173,6 +180,12 @@ class ApiService {
     await _clearSession();
   }
 
+  /// Suppression définitive du compte (confirmée par le mot de passe).
+  static Future<void> deleteAccount(String password) async {
+    await _request('DELETE', '/users/me', body: {'password': password});
+    await _clearSession();
+  }
+
   // ── Professionnels ────────────────────────────────────────────────────────
 
   static Future<List<Map<String, dynamic>>> searchProfessionals({
@@ -249,9 +262,17 @@ class ApiService {
         if (comment != null && comment.trim().isNotEmpty) 'comment': comment.trim(),
       });
 
-  /// Paiement en espèces (le paiement Mobile Money / Stripe passe par /payments).
-  static Future<void> payCash(String jobId) =>
-      _request('POST', '/payments', body: {'jobId': jobId, 'method': 'CASH'});
+  /// Le client déclare avoir payé le pro en direct.
+  /// [channel] : CASH (espèces), T_MONEY ou FLOOZ. TAARA n'encaisse rien.
+  static Future<void> declareDirectPayment(String jobId, {String channel = 'CASH'}) =>
+      _request('POST', '/payments', body: {'jobId': jobId, 'method': 'CASH', 'channel': channel});
+
+  // ── Abonnement pro ────────────────────────────────────────────────────────
+
+  /// Statut ('trial' | 'active' | 'expired' | 'none'), date de fin, historique,
+  /// et infos de paiement (prix, numéros T-Money / Flooz de TAARA).
+  static Future<Map<String, dynamic>> mySubscription() async =>
+      Map<String, dynamic>.from(await _request('GET', '/subscriptions/me') as Map);
 
   // ── Messages ──────────────────────────────────────────────────────────────
 

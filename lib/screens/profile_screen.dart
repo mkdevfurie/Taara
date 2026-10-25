@@ -242,6 +242,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(width: 10),
                     IconButton(
+                      tooltip: 'Supprimer mon compte',
+                      onPressed: _confirmDeleteAccount,
+                      icon: const Icon(Icons.delete_forever_outlined,
+                          color: AppTheme.textSecondary),
+                    ),
+                    IconButton(
                       tooltip: 'Déconnexion',
                       onPressed: () async {
                         await ApiService.logout();
@@ -257,6 +263,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    final ctrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        title: const Text('Supprimer mon compte',
+            style: TextStyle(color: Colors.white, fontSize: 17)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Votre profil, vos demandes, messages et notifications seront '
+              'définitivement effacés. Cette action est irréversible.',
+              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: ctrl,
+              obscureText: true,
+              autofocus: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'Mot de passe'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Supprimer',
+                style: TextStyle(color: AppTheme.accent)),
+          ),
+        ],
+      ),
+    );
+    final password = ctrl.text;
+    ctrl.dispose();
+    if (ok != true || password.isEmpty) return;
+    try {
+      await ApiService.deleteAccount(password);
+      if (mounted) showTaaraSnackbar(context, 'Compte supprimé');
+    } on ApiException catch (e) {
+      if (mounted) showTaaraSnackbar(context, e.message, isError: true);
+    }
   }
 
   Widget _buildProfileCard() {

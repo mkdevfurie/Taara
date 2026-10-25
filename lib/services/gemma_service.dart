@@ -16,12 +16,36 @@ class GemmaService {
   static const String _cacheKey = 'taara_offline_cache';
   static const int _maxCacheEntries = 20;
 
-  static bool get hasApiKey => _apiKey.isNotEmpty;
+  /// Proxy backend TAARA (la clé Gemini reste sur le serveur).
+  static String get _proxyUrl => '${Env.apiBaseUrl}/ai/generate';
+
+  /// Analyse en ligne possible : clé locale (dev) ou backend TAARA (production).
+  static bool get hasApiKey => _apiKey.isNotEmpty || Env.apiBaseUrl.isNotEmpty;
+
+  /// Envoie la requête à Gemma : en direct avec une clé locale, sinon via le backend.
+  static Future<http.Response> _generate(Map<String, dynamic> body) {
+    final direct = _apiKey.isNotEmpty;
+    return http
+        .post(
+          Uri.parse(direct ? _baseUrl : _proxyUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            if (direct) 'x-goog-api-key': _apiKey,
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 90));
+  }
 
   // ── Vérifie si l'appareil a accès à internet ──────────────────────────────
   static Future<bool> isOnline() async {
+    // Sur le web, pas de résolution DNS possible : on tente l'appel, l'échec bascule en hors-ligne
+    if (kIsWeb) return true;
     try {
-      final result = await InternetAddress.lookup('generativelanguage.googleapis.com')
+      final host = _apiKey.isNotEmpty
+          ? 'generativelanguage.googleapis.com'
+          : Uri.parse(Env.apiBaseUrl).host;
+      final result = await InternetAddress.lookup(host)
           .timeout(const Duration(seconds: 5));
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException {
@@ -88,11 +112,7 @@ Règles strictes :
 - Si tu ne reconnais pas l'objet, indique "Objet non identifié" dans objectName
 ''';
 
-        final response = await http
-            .post(
-              Uri.parse('$_baseUrl?key=$_apiKey'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
+        final response = await _generate({
                 'contents': [
                   {
                     'parts': [
@@ -108,7 +128,8 @@ Règles strictes :
                 ],
                 'generationConfig': {
                   'temperature': 0.2,
-                  'maxOutputTokens': 1024,
+                  // Gemma 4 « réfléchit » (~1 000 tokens) avant de répondre : avec 1024 le JSON était tronqué.
+                  'maxOutputTokens': 4096,
                 },
                 'safetySettings': [
                   {
@@ -116,9 +137,7 @@ Règles strictes :
                     'threshold': 'BLOCK_NONE'
                   }
                 ]
-              }),
-            )
-            .timeout(const Duration(seconds: 60));
+              });
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -216,21 +235,16 @@ status = CRITIQUE | ATTENTION | BON ÉTAT. JSON uniquement, sans texte autour.
           });
         }
 
-        final response = await http
-            .post(
-              Uri.parse('$_baseUrl?key=$_apiKey'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
+        final response = await _generate({
                 'contents': [
                   {'parts': parts}
                 ],
                 'generationConfig': {
                   'temperature': 0.2,
-                  'maxOutputTokens': 1024,
+                  // Gemma 4 « réfléchit » (~1 000 tokens) avant de répondre : avec 1024 le JSON était tronqué.
+                  'maxOutputTokens': 4096,
                 },
-              }),
-            )
-            .timeout(const Duration(seconds: 60));
+              });
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);

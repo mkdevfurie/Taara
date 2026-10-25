@@ -2,11 +2,12 @@
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!-- Galerie : inutile à partir d'Android 13 (sélecteur de photos système) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="taara"
+        android:label="Taara"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

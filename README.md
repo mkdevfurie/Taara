@@ -128,23 +128,36 @@ cd Taara
 # Install dependencies
 flutter pub get
 
-# Run on Android device (configuration injectée à la compilation, rien n'est versionné)
-flutter run \
-  --dart-define=GEMINI_API_KEY=YOUR_GEMINI_API_KEY \
-  --dart-define=TAARA_API_URL=http://10.0.2.2:3000/api/v1
-
-# Build release APK
-flutter build apk --split-per-abi --release \
-  --dart-define=GEMINI_API_KEY=YOUR_GEMINI_API_KEY \
-  --dart-define=TAARA_API_URL=https://api.taara.app/api/v1
+# Lancer en local (backend sur la machine, vu depuis l'émulateur)
+flutter run --dart-define=TAARA_API_URL=http://10.0.2.2:3000/api/v1
 ```
 
 | Variable | Rôle | Défaut |
 |---|---|---|
-| `GEMINI_API_KEY` | Diagnostic Gemma 4 en ligne | vide → mode hors-ligne (cache + base embarquée) |
-| `TAARA_API_URL` | Backend TAARA ([Taara_backend](https://github.com/mkdevfurie/Taara_backend)) | `http://10.0.2.2:3000/api/v1` (backend local vu depuis l'émulateur) |
+| `TAARA_API_URL` | Backend TAARA (comptes, réparateurs, chat **et IA**) | `http://10.0.2.2:3000/api/v1` |
+| `GEMINI_API_KEY` | Uniquement pour le développement. **Vide en production** : l'app passe par le backend (`/ai/generate`), la clé Gemini reste sur le serveur. | vide |
 
-En debug, le trafic HTTP en clair est autorisé (backend local) ; les builds release restent en HTTPS.
+Sans réseau, l'app répond avec sa base de pannes intégrée et le cache des diagnostics précédents.
+
+### Temps réel
+
+L'app se connecte au backend en WebSocket (Socket.IO, namespace `/chat`) dès que l'utilisateur est connecté :
+messages instantanés et indicateur « écrit… », statut des demandes mis à jour en direct, notifications affichées
+sur n'importe quel écran. Un rechargement périodique (30 s) prend le relais si la connexion tombe.
+
+### Publication Google Play
+
+- Identifiant : **`com.mkdevfurie.taara`** (définitif après la première publication), nom affiché « Taara ».
+- Clé de signature : `android/key.properties` (non versionné) pointe vers la clé hors dépôt. Pour la créer sur une
+  autre machine : `scripts/creer-cle-signature.sh`. **Sauvegardez la clé et son mot de passe** : sans eux, plus de mises à jour.
+- Construire l'AAB (Play Store) et l'APK (site) :
+
+```bash
+scripts/build-release.sh https://api.votre-domaine.com/api/v1
+```
+
+- Fiche Play Store : politique de confidentialité sur le site (`/#confidentialite`), suppression de compte dans
+  l'app (**Profil → Supprimer mon compte**), permissions déclarées : caméra, micro, photos (Android ≤ 12).
 
 ### Marketplace des réparateurs
 
@@ -154,7 +167,9 @@ Depuis l'écran de résultat, **« Trouver un réparateur »** :
 2. demande la connexion (ou l'inscription client / pro) si nécessaire ;
 3. envoie le diagnostic Taara au backend et crée la demande avec un budget estimé.
 
-Le suivi se fait dans **Profil → Mes demandes** (client : annuler, discuter, déclarer le paiement en espèces, noter) ou **Mes jobs** (pro : accepter avec un prix, refuser, démarrer, terminer). Le chat client ↔ pro est rafraîchi toutes les 5 s.
+Le client paie le réparateur **en direct** (espèces, T-Money, Flooz) puis le déclare dans l'app ; TAARA se rémunère par l'abonnement des réparateurs, dont le statut s'affiche dans **Mes jobs** (essai, date de fin, numéro de paiement).
+
+Le suivi se fait dans **Profil → Mes demandes** (client : annuler, discuter, déclarer le paiement, noter) ou **Mes jobs** (pro : accepter avec un prix, refuser, démarrer, terminer). Le chat client ↔ pro est rafraîchi toutes les 5 s.
 
 ### Android Permissions
 
