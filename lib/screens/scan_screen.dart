@@ -326,8 +326,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       // Naviguer vers le résultat en passant le DiagnosticResult complet
       await Navigator.pushNamed(context, '/result', arguments: result);
 
-      // Retourner le modèle au HomeScreen
-      if (mounted) Navigator.pop(context, result.model);
+      // Retourner le modèle au HomeScreen — seulement si l'écran Scan est encore
+      // au premier plan : après « Terminer » dans le guide, il est déjà en train
+      // d'être retiré, et un pop ici fermerait l'accueil (écran noir).
+      if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) {
+        Navigator.pop(context, result.model);
+      }
     }
   }
 

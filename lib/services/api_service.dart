@@ -181,6 +181,23 @@ class ApiService {
     await _clearSession();
   }
 
+  /// Met à jour nom et téléphone du compte connecté.
+  static Future<void> updateMe({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async {
+    final id = _user?.id;
+    if (id == null) throw const ApiException('Connectez-vous pour continuer', statusCode: 401);
+    final data = await _request('PUT', '/users/$id', body: {
+      'firstName': firstName.trim(),
+      'lastName': lastName.trim(),
+      'phone': phone.replaceAll(' ', ''),
+    });
+    _user = TaaraUser.fromJson(Map<String, dynamic>.from(data as Map));
+    await _saveSession();
+  }
+
   /// Suppression définitive du compte (confirmée par le mot de passe).
   static Future<void> deleteAccount(String password) async {
     await _request('DELETE', '/users/me', body: {'password': password});

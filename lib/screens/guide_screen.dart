@@ -394,7 +394,8 @@ class _GuideScreenState extends State<GuideScreen>
                     onTap: () {
                       if (isLastStep) {
                         // Retour propre vers l'accueil en vidant la stack
-                        Navigator.of(context).popUntil((route) => route.settings.name == '/home');
+                        Navigator.of(context).popUntil(
+                            (route) => route.settings.name == '/home' || route.isFirst);
                       } else {
                         _goToStep(_currentStep + 1, totalSteps);
                       }

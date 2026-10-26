@@ -17,4 +17,7 @@ class Env {
     'TAARA_API_URL',
     defaultValue: 'http://10.0.2.2:3000/api/v1',
   );
+
+  /// Site vitrine (politique de confidentialité). Vide = lien masqué dans l'app.
+  static const String siteUrl = String.fromEnvironment('TAARA_SITE_URL');
 }

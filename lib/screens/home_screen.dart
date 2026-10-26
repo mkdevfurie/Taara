@@ -41,10 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Index 1 = SCAN → ouvre la caméra
     if (i == 1) {
       final result = await Navigator.pushNamed(context, '/scan');
-      if (result is DiagnosticModel && mounted) {
-        await HistoryService.add(result);
-        setState(() => _currentIndex = 1);
-      }
+      // Diagnostic déjà enregistré par l'écran Scan : on affiche l'historique à jour
+      if (result is DiagnosticModel && mounted) setState(() => _currentIndex = 1);
       return;
     }
     final pageMap = {0: 0, 2: 1, 3: 2};
@@ -131,9 +129,9 @@ class _DashboardPageState extends State<_DashboardPage> {
   }
 
   Future<void> _launchScan() async {
-    final result = await Navigator.pushNamed(context, '/scan');
-    if (result is DiagnosticModel && mounted) {
-      await HistoryService.add(result);
+    await Navigator.pushNamed(context, '/scan');
+    // L'écran Scan enregistre déjà le diagnostic dans l'historique : on recharge seulement
+    if (mounted) {
       await _loadData();
       widget.onRefresh();
     }

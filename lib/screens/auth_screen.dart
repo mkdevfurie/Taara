@@ -68,13 +68,15 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _forgotPassword() async {
     final email = _emailCtrl.text.trim();
     if (!email.contains('@')) {
-      showTaaraSnackbar(context, 'Saisissez d\'abord votre email', isError: true);
+      showTaaraSnackbar(context, 'Saisissez d\'abord votre email',
+          isError: true);
       return;
     }
     try {
       await ApiService.forgotPassword(email);
       if (mounted) {
-        showTaaraSnackbar(context, 'Si ce compte existe, un email de réinitialisation a été envoyé');
+        showTaaraSnackbar(context,
+            'Si ce compte existe, un email de réinitialisation a été envoyé');
       }
     } on ApiException catch (e) {
       if (mounted) showTaaraSnackbar(context, e.message, isError: true);
@@ -100,15 +102,59 @@ class _AuthScreenState extends State<AuthScreen> {
                 Text(
                   'Votre compte TAARA permet de contacter un réparateur vérifié '
                   'près de chez vous et de suivre vos demandes.',
-                  style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
+                  style: GoogleFonts.inter(
+                      color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
                 ),
                 const SizedBox(height: 24),
                 if (_isRegister) ...[
+                  const Text('Vous êtes :',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(child: _field(_firstNameCtrl, 'Prénom', Icons.person_outline)),
+                      Expanded(
+                        child: _roleCard(
+                          selected: !_asPro,
+                          icon: Icons.person_search_rounded,
+                          title: 'Client',
+                          subtitle: 'Je cherche à faire réparer',
+                          onTap: () => setState(() => _asPro = false),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _field(_lastNameCtrl, 'Nom', Icons.badge_outlined)),
+                      Expanded(
+                        child: _roleCard(
+                          selected: _asPro,
+                          icon: Icons.engineering_rounded,
+                          title: 'Réparateur',
+                          subtitle: 'Je propose mes services',
+                          onTap: () => setState(() => _asPro = true),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_asPro) ...[
+                    const SizedBox(height: 10),
+                    const Text(
+                      '3 mois offerts, puis abonnement. Votre profil est vérifié par l\'équipe Taara '
+                      '(avec ou sans diplôme) avant d\'apparaître aux clients.',
+                      style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                          height: 1.4),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                          child: _field(
+                              _firstNameCtrl, 'Prénom', Icons.person_outline)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: _field(
+                              _lastNameCtrl, 'Nom', Icons.badge_outlined)),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -117,7 +163,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     'Téléphone (ex : +22890123456)',
                     Icons.phone_outlined,
                     keyboard: TextInputType.phone,
-                    validator: (v) => RegExp(r'^\+?[1-9]\d{6,14}$').hasMatch((v ?? '').replaceAll(' ', ''))
+                    validator: (v) => RegExp(r'^\+?[1-9]\d{6,14}$')
+                            .hasMatch((v ?? '').replaceAll(' ', ''))
                         ? null
                         : 'Numéro invalide',
                   ),
@@ -128,7 +175,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   'Email',
                   Icons.alternate_email,
                   keyboard: TextInputType.emailAddress,
-                  validator: (v) => (v ?? '').contains('@') ? null : 'Email invalide',
+                  validator: (v) =>
+                      (v ?? '').contains('@') ? null : 'Email invalide',
                 ),
                 const SizedBox(height: 14),
                 _field(
@@ -137,57 +185,112 @@ class _AuthScreenState extends State<AuthScreen> {
                   Icons.lock_outline,
                   obscure: _obscure,
                   suffix: IconButton(
-                    icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: AppTheme.textSecondary, size: 20),
+                    icon: Icon(
+                        _obscure
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: AppTheme.textSecondary,
+                        size: 20),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                   validator: (v) {
                     if ((v ?? '').isEmpty) return 'Mot de passe requis';
-                    if (_isRegister && v!.length < 8) return '8 caractères minimum';
+                    if (_isRegister && v!.length < 8)
+                      return '8 caractères minimum';
                     return null;
                   },
                 ),
-                if (_isRegister) ...[
-                  const SizedBox(height: 10),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: _asPro,
-                    activeColor: AppTheme.primary,
-                    onChanged: (v) => setState(() => _asPro = v),
-                    title: const Text('Je suis réparateur professionnel',
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
-                    subtitle: const Text('Votre profil sera vérifié par l\'équipe TAARA',
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                  ),
-                ],
                 if (!_isRegister)
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _loading ? null : _forgotPassword,
                       child: const Text('Mot de passe oublié ?',
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                          style: TextStyle(
+                              color: AppTheme.textSecondary, fontSize: 12)),
                     ),
                   ),
                 const SizedBox(height: 20),
                 _loading
-                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                    ? const Center(
+                        child:
+                            CircularProgressIndicator(color: AppTheme.primary))
                     : GoldButton(
-                        label: _isRegister ? 'CRÉER MON COMPTE' : 'SE CONNECTER',
-                        icon: _isRegister ? Icons.person_add_alt_1 : Icons.login_rounded,
+                        label:
+                            _isRegister ? 'CRÉER MON COMPTE' : 'SE CONNECTER',
+                        icon: _isRegister
+                            ? Icons.person_add_alt_1
+                            : Icons.login_rounded,
                         onTap: _submit,
                       ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: _loading ? null : () => setState(() => _isRegister = !_isRegister),
+                  onPressed: _loading
+                      ? null
+                      : () => setState(() => _isRegister = !_isRegister),
                   child: Text(
-                    _isRegister ? 'Déjà inscrit ? Se connecter' : 'Pas encore de compte ? S\'inscrire',
-                    style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600),
+                    _isRegister
+                        ? 'Déjà inscrit ? Se connecter'
+                        : 'Pas encore de compte ? S\'inscrire',
+                    style: const TextStyle(
+                        color: AppTheme.primary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _roleCard({
+    required bool selected,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.primary.withOpacity(0.12)
+              : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? AppTheme.primary : Colors.white12,
+            width: selected ? 1.6 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icon,
+                  color: selected ? AppTheme.primary : AppTheme.textSecondary),
+              const Spacer(),
+              Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  size: 18,
+                  color: selected ? AppTheme.primary : Colors.white24),
+            ]),
+            const SizedBox(height: 10),
+            Text(title,
+                style: TextStyle(
+                    color: selected ? Colors.white : Colors.white70,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15)),
+            const SizedBox(height: 2),
+            Text(subtitle,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 11)),
+          ],
         ),
       ),
     );
@@ -207,10 +310,12 @@ class _AuthScreenState extends State<AuthScreen> {
       keyboardType: keyboard,
       obscureText: obscure,
       style: const TextStyle(color: Colors.white),
-      validator: validator ?? (v) => (v ?? '').trim().isEmpty ? 'Champ requis' : null,
+      validator:
+          validator ?? (v) => (v ?? '').trim().isEmpty ? 'Champ requis' : null,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+        labelStyle:
+            const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         prefixIcon: Icon(icon, color: AppTheme.textSecondary, size: 20),
         suffixIcon: suffix,
         filled: true,
